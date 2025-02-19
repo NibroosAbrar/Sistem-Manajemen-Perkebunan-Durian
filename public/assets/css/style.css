@@ -1,0 +1,214 @@
+@import url('https://fonts.googleapis.com/css?family=Karla:400,700&display=swap');
+
+.font-family-karla { font-family: karla; }
+.bg-sidebar, .bg-header { background: #b9b9b9; }
+.cta-btn { color: #b9b9b9; }
+.active-nav-link { background: #5acca0; }
+.nav-item:hover { background: #5acca0; }
+.account-link:hover { background: #5acca0; }
+
+/* Styling sidebar */
+.account-dropdown {
+    position: absolute;
+    z-index: 2000;
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+    overflow: hidden;
+    width: 8vw;
+}
+
+@media (max-width: 640px) {
+    .account-dropdown {
+        width: 30vw; /* Adjust width for mobile devices */
+    }
+}
+
+[x-cloak] { display: none !important; }
+
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Menghilangkan scroll */
+    box-sizing: border-box;
+}
+
+.w-full.flex.flex-col.h-screen.overflow-y-hidden {
+    height: 100%; /* Ensure the parent container takes full height */
+}
+
+.w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
+    height: 100%; /* Ensure the parent container takes full height */
+}
+
+#map {
+    height: calc(100% - 48px); /* Make the map height flexible */
+    width: 100%; /* Ensure the map takes the full width of the viewport */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    position: absolute; /* Change to absolute to ensure elements are visible */
+    top: 48px; /* Adjust top position to account for header */
+}
+
+.leaflet-marker-fade {
+    transition: opacity 1s ease-out; /* Efek transisi fade-out */
+    opacity: 0; /* Hilangkan elemen */
+}
+
+header {
+    height: 48px; /* Kurangi tinggi header (default: 64px) */
+}
+
+aside {
+    width: 48px; /* Kurangi lebar sidebar (default: 64px) */
+}
+
+/* Header informasi citra */
+#camera-header {
+    display: flex;
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+    flex: 1 1 calc(100% - 20px); /* Tetapkan lebar elemen */
+    text-align: center;
+    text-transform: uppercase;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding-left: 0px; /* Reduced padding */
+    padding-top: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px; /* Reduced margin */
+    height: 10%;
+}
+
+#camera {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px; /* Tambahkan jarak antar elemen */
+    padding: 20px;
+    background-color: #ffffff; /* Warna latar */
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Efek bayangan */
+    border-radius: 8px; /* Membuat sudut melengkung */
+}
+
+/* Card styling */
+#camera .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center vertically */
+    align-items: center; /* Center horizontally */
+    flex: 1 1 calc(50% - 20px);
+    min-width: 300px;
+    padding: 5px;
+    border: 1px solid #e0e0e0;
+    border-radius: 20px;
+    background-color: #f9f9f9;
+    text-align: center;
+}
+
+/* Judul dalam card */
+#camera .card h4 {
+    font-size: 0.9rem; /* Ukuran lebih kecil untuk judul */
+    font-weight: normal;
+    color: #333;
+    margin-bottom: 5px;
+    text-align: center;
+    align-items: center;
+    justify-content: center; /* Pusatkan secara horizontal */
+}
+
+/* Konten dalam card */
+#camera .card p {
+    font-size: 1.3rem; /* Font lebih besar untuk konten */
+    font-weight: bold; /* Teks lebih tebal */
+    color: #000;
+    margin: 0;
+    text-align: center;
+    align-items: center;
+    justify-content: center; /* Pusatkan secara horizontal */
+}
+
+@media (max-width: 768px) {
+    #camera .card {
+        flex: 1 1 100%; /* Pada layar kecil, elemen menjadi 100% lebar */
+    }
+}
+
+@media (max-width: 640px) {
+    header {
+        height: 55px; /* Kurangi tinggi header lebih lanjut untuk layar kecil */
+    }
+
+    aside {
+        width: 40px; /* Kurangi lebar sidebar lebih lanjut untuk layar kecil */
+    }
+
+    .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
+        height: calc(100% - 55px); /* Ensure the parent container takes full height minus header */
+    }
+
+    #map {
+        height: calc(100% - 55px); /* Sesuaikan tinggi peta untuk layar kecil */
+        width: 100vw;
+        top: 55px; /* Adjust top position to account for header */
+    }
+
+    #camera-header {
+        font-size: 1.2rem; /* Kurangi ukuran font header untuk layar kecil */
+    }
+
+    #camera .card h4 {
+        font-size: 0.8rem; /* Kurangi ukuran font judul dalam card untuk layar kecil */
+    }
+
+    #camera .card p {
+        font-size: 1.1rem; /* Kurangi ukuran font konten dalam card untuk layar kecil */
+    }
+}
+
+/* Specific styles for iOS devices */
+@media only screen and (max-width: 640px) and (device-width: 375px) and (-webkit-min-device-pixel-ratio: 2) {
+    .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
+        height: calc(100% - 55px); /* Adjust height for iOS devices */
+    }
+}
+
+/* Specific styles for Android devices */
+@media only screen and (max-width: 640px) and (device-width: 360px) and (-webkit-min-device-pixel-ratio: 3) {
+    .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
+        height: calc(100% - 55px); /* Adjust height for Android devices */
+    }
+}
+
+.sidebar-header {
+    padding-left: 0px; /* Reduced padding */
+    padding-top: 0px;
+    margin-top: 0px;
+    margin-bottom: 0px; /* Reduced margin */
+    height: 10%;
+}
+
+.sidebar-dropdown {
+    position: absolute;
+    z-index: 2000; /* Pastikan z-index cukup tinggi */
+    background: white;
+    border: 1px solid #ddd;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border-radius: 0.5rem;
+}
+
+#loading-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: white;
+    z-index: 9999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

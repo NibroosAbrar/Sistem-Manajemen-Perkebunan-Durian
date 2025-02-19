@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DuriGeo</title>
+    <meta name="author" content="Muhammad Nibroos Abrar">
+    <meta name="description" content="">
+
+    <!-- Tailwind -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css?family=Karla:400,700&display=swap');
+        .font-family-karla { font-family: karla; }
+        .bg-sidebar, .bg-header { background: #b9b9b9; }
+        .cta-btn { color: #b9b9b9; }
+        .active-nav-link { background: #5acca0; }
+        .nav-item:hover { background: #5acca0; }
+        .account-link:hover { background: #5acca0; }
+        .account-dropdown {
+            position: absolute;
+            z-index: 2000;
+            background: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+            overflow: hidden; /* Hindari elemen yang keluar */
+            width: 8vw;
+        }
+
+        
+        @media (max-width: 640px) {
+            .account-dropdown {
+                width: 30vw; /* Adjust width for mobile devices */
+            }
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Menghilangkan scroll */
+            box-sizing: border-box;
+        }
+
+        .w-full.flex.flex-col.h-screen.overflow-y-hidden {
+            height: 100%; /* Ensure the parent container takes full height */
+        }
+
+        .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
+            height: 100%; /* Ensure the parent container takes full height */
+        }
+
+        #map {
+            height: calc(100% - 48px); /* Make the map height flexible */
+            width: 100%; /* Ensure the map takes the full width of the viewport */
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            position: absolute; /* Change to absolute to ensure elements are visible */
+            top: 48px; /* Adjust top position to account for header */
+        }
+        .leaflet-marker-fade {
+            transition: opacity 1s ease-out; /* Efek transisi fade-out */
+            opacity: 0; /* Hilangkan elemen */
+        }
+
+        header {
+            height: 48px; /* Kurangi tinggi header (default: 64px) */
+        }
+        
+        aside {
+            width: 48px; /* Kurangi lebar sidebar (default: 64px) */
+        }
+        
+        /* Header informasi citra */
+        #camera-header {
+            display: flex;
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
+            flex: 1 1 calc(100% - 20px); /* Tetapkan lebar elemen */
+            text-align: center;
+            text-transform: uppercase;
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding-left: 0px; /* Reduced padding */
+            padding-top: 0px;
+            margin-top: 0px;
+            margin-bottom: 0px; /* Reduced margin */
+            height: 10%;
+        }
+
+        #camera {
+            display: flex;  
+            flex-wrap: wrap;
+            gap: 10px; /* Tambahkan jarak antar elemen */
+            padding: 20px;
+            background-color: #ffffff; /* Warna latar */
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1); /* Efek bayangan */
+            border-radius: 8px; /* Membuat sudut melengkung */
+        }
+
+        /* Card styling */
+        #camera .card {
+            display: flex;
+            flex-direction: column;
+            justify-content: center; /* Center vertically */
+            align-items: center; /* Center horizontally */
+            flex: 1 1 calc(50% - 20px);
+            min-width: 300px;
+            padding: 5px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        /* Judul dalam card */
+        #camera .card h4 {
+            font-size: 0.9rem; /* Ukuran lebih kecil untuk judul */
+            font-weight: normal;
+            color: #333;
+            margin-bottom: 5px;
+            text-align: center;
+            align-items: center;
+            justify-content: center; /* Pusatkan secara horizontal */
+        }
+
+        /* Konten dalam card */
+        #camera .card p {
+            font-size: 1.3rem; /* Font lebih besar untuk konten */
+            font-weight: bold; /* Teks lebih tebal */
+            color: #000;
+            margin: 0;
+            text-align: center;
+            align-items: center;
+            justify-content: center; /* Pusatkan secara horizontal */
+        }
+
+        @media (max-width: 768px) {
+            #camera .card {
+                flex: 1 1 100%; /* Pada layar kecil, elemen menjadi 100% lebar */
+            }
+        }        
+        
+        @media (max-width: 640px) {
+            header {
+                height: 55px; /* Kurangi tinggi header lebih lanjut untuk layar kecil */
+            }
+
+            aside {
+                width: 40px; /* Kurangi lebar sidebar lebih lanjut untuk layar kecil */
+            }
+
+            .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
+                height: calc(100% - 55px); /* Ensure the parent container takes full height minus header */
+            }
+
+            #map {
+                height: calc(100% - 55px); /* Sesuaikan tinggi peta untuk layar kecil */
+                width: 100vw;
+                top: 55px; /* Adjust top position to account for header */
+            }
+
+            #camera-header {
+                font-size: 1.2rem; /* Kurangi ukuran font header untuk layar kecil */
+            }
+
+            #camera .card h4 {
+                font-size: 0.8rem; /* Kurangi ukuran font judul dalam card untuk layar kecil */
+            }
+
+            #camera .card p {
+                font-size: 1.1rem; /* Kurangi ukuran font konten dalam card untuk layar kecil */
+            }
+        }
+
+        /* Specific styles for iOS devices */
+        @media only screen and (max-width: 640px) and (device-width: 375px) and (-webkit-min-device-pixel-ratio: 2) {
+            .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
+                height: calc(100% - 55px); /* Adjust height for iOS devices */
+            }
+        }
+
+        /* Specific styles for Android devices */
+        @media only screen and (max-width: 640px) and (device-width: 360px) and (-webkit-min-device-pixel-ratio: 3) {
+            .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
+                height: calc(100% - 55px); /* Adjust height for Android devices */
+            }
+        }
+
+        .sidebar-header {
+            padding-left: 0px; /* Reduced padding */
+            padding-top: 0px;
+            margin-top: 0px;
+            margin-bottom: 0px; /* Reduced margin */
+            height: 10%;
+        }
+
+        .sidebar-dropdown {
+            position: absolute;
+            z-index: 2000; /* Pastikan z-index cukup tinggi */
+            background: white;
+            border: 1px solid #ddd;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+        }
+
+        #loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: white;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+    </style>
+
+    <!-- AlpineJS -->
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <link rel="stylesheet" href="static/L.Control.Sidebar.css" />
+    <link rel="stylesheet" href="static/L.Control.MousePosition.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.css">
+    <link rel="stylesheet" href="{{ env('GEOMAN_CDN') }}">
+
+    <!-- Jquery -->
+    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.css">  -->
+
+
+</head>
+<body class="bg-gray-100 font-family-karla flex" x-data="{ isDropdownOpen: false, isAccountDropdownOpen: false, showModal: false }" onload="hideLoadingScreen()">
+
+    <div id="loading-screen">
+    </div>
+
+    <div class="w-full flex flex-col h-screen overflow-y-hidden">
+        <!-- Header -->
+        <header class="bg-header text-black flex items-center justify-center py-4 px-6 relative">
+            <!-- Toggle Dropdown -->
+            <button @click="isDropdownOpen = !isDropdownOpen" class="absolute left-6 text-3xl focus:outline-none">
+                <i x-show="!isDropdownOpen" class="fas fa-bars"></i>
+                <i x-show="isDropdownOpen" class="fas fa-times"></i>
+            </button>
+            <h1 class="text-xl font-semibold">Beranda</h1>
+            <div x-data="{ isOpen: false }" class="absolute right-6 flex justify-end">
+                <button @click="isOpen = !isOpen" class="relative z-10 w-12 h-12 rounded-full overflow-hidden border-4 border-gray-400 hover:border-gray-300 focus:border-gray-300 focus:outline-none">
+                    <img src="static/profile.png">
+                </button>
+                <button x-show="isOpen" @click="isOpen = false" class="h-full w-full fixed inset-0 cursor-default"></button>
+                <div x-show="isOpen" class="account-dropdown py-2 mt-16">
+                    <a href="#" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Akun</a>
+                    <a href="#" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Support</a>
+                    <div x-data="{ showModal: false }">
+                        <a href="#" @click.prevent="showModal = true" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Keluar</a>
+
+                        <!-- Modal -->
+                        <div x-show="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
+                            <div class="bg-white p-6 rounded-lg shadow-lg">
+                                <h2 class="text-xl font-semibold mb-4">Konfirmasi Keluar</h2>
+                                <p class="mb-4">Apakah Anda yakin ingin keluar?</p>
+                                <div class="flex justify-end">
+                                    <button @click="showModal = false" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded mr-2">Batal</button>
+                                    <button @click="window.location.href='index.html'" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">Keluar</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dropdown Menu -->
+        <!-- Dropdown Menu -->
+        <div x-show="isDropdownOpen" class="sidebar-dropdown py-2 mt-16 absolute left-6">
+            <h1 class="sidebar-header text-2xl font-bold text-center mb-4" style="color: #4aa87a;">DuriGeo</h1>
+            <a href="webgis.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Beranda</a>
+            <a href="dashboard.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Dashboard Kebun</a>
+            <a href="pengelolaan.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Kegiatan Pengelolaan Kebun</a>
+            <a href="produksi.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Kegiatan Panen dan Produksi</a>
+            <a href="stok.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Manajemen Stok Kebun</a>
+            <a href="akun.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Manajemen Pengguna</a>
+        </div>
+
+
+        <div class="w-full h-screen overflow-x-hidden border-t flex flex-col">
+            <main>
+                <!-- <h1 class="text-3xl text-black pb-6">Interactive Map</h1> -->
+                <!-- Leaflet Map Container -->
+                <div id="map" class="col-md-12"></div>
+                <div id="sidebar" class ="col-md-3">
+                    <div id="info">
+                        <h1 class="text-center font-bold uppercase"> Tentang Kami</h1>
+                        <br>
+                        <h2 class="font-bold">Sejarah Penanaman</h2>
+                        <p class ="text-justify">Bibit pertama kali ditanam pada tahun 2012, 
+                            menandai awal perjalanan kami dalam budidaya tanaman. 
+                            Dengan perawatan dan pengelolaan yang teliti, 
+                            kebun ini mulai berbuah pada tahun 2015, 
+                            menunjukkan hasil dari dedikasi dan upaya kami 
+                            dalam setiap tahap proses.</p>
+                            <br>
+                        <h2 class="font-bold">Lokasi</h2>
+                        <p class ="text-justify">Kebun kami terletak di Kabupaten Sukabumi Provinsi Jawa Barat.</p>
+                        <br>
+                        <h2 class="font-bold">Informasi Kebun</h2>
+                        <p class ="text-justify"> Kebun ini mencakup area seluas 60 hektar dan terbagi menjadi lima blok kebun. 
+                            Setiap blok dirancang untuk memaksimalkan efisiensi dan produktivitas, 
+                            serta memudahkan pengelolaan dan pemeliharaan.</p>
+                    </div>
+                    <div id="camera">
+                        <div id="camera-header" class="text-center font-bold uppercase">Informasi Citra</div>
+                        <br>
+                        <div class="card">
+                            <h4>Resolusi Pengambilan Citra</h4>
+                            <p>1 cm</p>
+                        </div>
+                        <div class="card">
+                            <h4>Waktu dan Tanggal Pengambilan Citra</h4>
+                            <p> 09.30 WIB, 20 April 2024</p>
+                        </div>
+                        <div class="card">
+                            <h4>Tipe Drone</h4>
+                            <p>DJI Mavic 3 Multispectral</p>
+                        </div>
+                        <div class="card">
+                            <h4>Ketinggian Pengambilan Citra</h4>
+                            <p>75 meter</p>
+                        </div>
+                        <div class="card">
+                            <h4>Overlap Pengambilan Citra</h4>
+                            <p>85%</p>
+                        </div>
+                    </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <!-- <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script> -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="static/L.Control.Sidebar.js"></script>
+    <script src="static/L.Control.MousePosition.js" ></script>
+    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js"></script>
+    <script src="https://unpkg.com/@geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
+    <script src="static/leaflet.ajax.js"></script>    
+
+    <script>
+        function hideLoadingScreen() {
+            document.getElementById('loading-screen').style.display = 'none';
+        }
+
+        var map;
+        var baseLayers;  
+        var overlays;  
+
+        // Initialize the Leaflet map
+        var satellite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        });
+        // Tambahkan layer Label (Nama Tempat)
+        var labels = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+        });
+
+        // Gabungkan kedua layer
+        var map = L.map('map', {
+            attributionControl: false,
+            center: [0, 0],
+            zoom: 23,
+            layers: [satellite, labels], // Gabungkan layer satelit dan label
+            zoomControl: false
+        });
+
+        var GoogleStreets = L.tileLayer('http://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}',{
+            maxZoom: 23,
+            subdomains:['mt0','mt1','mt2','mt3']
+        });
+
+        var googleHybrid = L.tileLayer('http://mt0.google.com/vt/lyrs=y&hl=en&x={x}&y={y}&z={z}',{
+            maxZoom: 23 // valid values are 'roadmap', 'satellite', 'terrain' and 'hybrid'
+        }); 
+
+        // Add a marker
+        var marker = L.marker([-6.559434, 106.725815]).addTo(map); // Koordinat untuk Bogor
+        marker.bindPopup('<b>Welcome to DuriGeo</b>').openPopup();
+        
+        // Atur posisi peta agar fokus pada marker
+        map.setView([-6.559434, 106.725815], 23); // Zoom level 13
+        
+        // Hapus marker dengan efek fade-out setelah 5 detik
+        setTimeout(function() {
+            // Dapatkan elemen DOM marker
+            var markerElement = marker.getElement();
+        
+            // Tambahkan kelas CSS untuk efek fade-out
+            markerElement.classList.add('leaflet-marker-fade');
+        
+            // Tunggu 1 detik (sesuai durasi animasi fade-out), lalu hapus marker dari peta
+            setTimeout(function() {
+                map.removeLayer(marker);
+            }, 1000); // 1000 ms = 1 detik
+        }, 5000);
+
+        // Tambahkan scale bar
+        L.control.scale({
+            position: 'bottomleft', // Posisi scale bar
+            metric: true, // Gunakan metrik (meter/kilometer)
+            imperial: true // Nonaktifkan imperial (feet/mile)
+         }).addTo(map);
+
+         
+        // Variabel untuk menyimpan status sidebar yang aktif
+        let activeSidebar = null;
+
+        // SIDEBAR
+        var sidebarcamera = L.control.sidebar("camera", {
+            position: 'left',
+            autopan: false // Nonaktifkan pemindahan peta saat sidebar terbuka
+        }).addTo(map);
+
+        var sidebarinfo = L.control.sidebar("info", {
+            position: 'left',
+            autopan: false // Nonaktifkan pemindahan peta saat sidebar terbuka
+        }).addTo(map);
+
+        // Fungsi untuk mengatur buka/tutup sidebar
+        function toggleSidebar(sidebarToToggle, otherSidebar) {
+            // Jika sidebar yang akan dibuka adalah yang aktif, maka tutup
+            if (activeSidebar === sidebarToToggle) {
+                sidebarToToggle.hide();
+                activeSidebar = null; // Tidak ada sidebar aktif
+            } else {
+                // Tutup sidebar lainnya jika terbuka
+                if (activeSidebar) {
+                    activeSidebar.hide();
+                }
+                // Buka sidebar yang diminta
+                sidebarToToggle.show();
+                activeSidebar = sidebarToToggle; // Atur sidebar ini sebagai aktif
+            }
+        }
+
+        // EasyButton untuk Info
+        L.easyButton('fa-info-circle', function () {
+            if (sidebarcamera.isVisible()) {
+                sidebarcamera.hide(); // Tutup sidebar camera jika sedang terbuka
+            }
+            sidebarinfo.toggle(); // Tampilkan atau sembunyikan sidebar info
+        }).addTo(map);
+        
+        // EasyButton untuk Camera
+        L.easyButton('fa-camera', function () {
+            if (sidebarinfo.isVisible()) {
+                sidebarinfo.hide(); // Tutup sidebar info jika sedang terbuka
+            }
+            sidebarcamera.toggle(); // Tampilkan atau sembunyikan sidebar camera
+        }).addTo(map);
+
+        //MousePosition
+        L.control.mousePosition({position:'bottomright'}).addTo(map);
+
+        //Geoman
+        // add Leaflet-Geoman controls with some options to the map  
+        map.pm.addControls({  
+        position: 'topleft',  
+        drawCircleMarker: false,
+        rotateMode: false,
+        dragMode: false,
+        }); 
+
+        map.on("pm:create", function(e) {
+            console.log(e);
+        });
+
+        //Layer Control
+
+        var baseLayers = {
+            "Esri Map": L.layerGroup([satellite, labels]),
+            'Google Hybrid': googleHybrid,
+            "Google Streets": GoogleStreets,
+        };
+
+        var control_layers = L.control.layers(baseLayers,overlays).addTo(map);   
+
+    </script>
+    
+</body>
+</html>
