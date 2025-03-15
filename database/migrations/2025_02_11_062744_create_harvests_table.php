@@ -13,6 +13,13 @@ return new class extends Migration
     {
         Schema::create('harvests', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('tree_id')->constrained('trees')->onDelete('cascade');
+            $table->date('tanggal_panen');
+            $table->float('total_weight')->nullable();
+            $table->integer('fruit_count')->nullable();
+            $table->float('average_weight_per_fruit')->nullable();
+            $table->string('fruit_condition')->nullable();
+            $table->enum('unit', ['kg', 'g']);
             $table->timestamps();
         });
     }

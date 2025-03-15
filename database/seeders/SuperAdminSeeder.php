@@ -13,7 +13,11 @@ class SuperAdminSeeder extends Seeder {
             [
                 'name' => 'Superadmin',
                 'password' => Hash::make('password123'),
-                'role' => 'Superadmin'
+                'role' => 'Superadmin',
+                'role_id' => 1,
+                'email_verified_at' => now(),
+                'created_at' => now(),
+                'updated_at' => now(),
             ]
         );
     }

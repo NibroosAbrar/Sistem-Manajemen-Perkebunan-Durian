@@ -8,8 +8,16 @@ return new class extends Migration {
     public function up()
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->unsignedBigInteger('role_id')->nullable()->change();
-            $table->foreign('role_id')->references('id')->on('roles')->onDelete('SET NULL');
+            // Tambahkan kolom role_id terlebih dahulu jika belum ada
+            if (!Schema::hasColumn('users', 'role_id')) {
+                $table->unsignedBigInteger('role_id')->nullable();
+            }
+
+            // Kemudian buat foreign key
+            $table->foreign('role_id')
+                  ->references('id')
+                  ->on('roles')
+                  ->onDelete('SET NULL');
         });
     }
 
@@ -17,6 +25,7 @@ return new class extends Migration {
     {
         Schema::table('users', function (Blueprint $table) {
             $table->dropForeign(['role_id']);
+            $table->dropColumn('role_id');
         });
     }
 };

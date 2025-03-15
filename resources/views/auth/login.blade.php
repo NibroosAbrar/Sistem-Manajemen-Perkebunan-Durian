@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - DuriGeo</title>
+    <title>Login - Symadu</title>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
 </head>
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
     <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-        <h1 class="text-2xl font-bold text-center mb-6" style="color: #4aa87a;">Welcome to DuriGeo</h1>
+        <h1 class="text-2xl font-bold text-center mb-6" style="color: #4aa87a;">Welcome to Symadu</h1>
 
         <!-- Form Login -->
         <form method="POST" action="{{ route('login') }}">

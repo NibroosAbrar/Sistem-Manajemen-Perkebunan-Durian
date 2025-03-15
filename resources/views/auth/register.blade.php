@@ -1,10 +1,10 @@
 @extends('layouts.master')
 
-@section('title', 'Buat Akun - DuriGeo')
+@section('title', 'Buat Akun - Symadu')
 
 @section('content')
 <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-    <h1 class="text-2xl font-bold text-center mb-6 text-green-700">Buat Akun di DuriGeo</h1>
+    <h1 class="text-2xl font-bold text-center mb-6 text-green-700">Buat Akun di Symadu</h1>
 
     <!-- Menampilkan pesan sukses setelah registrasi -->
     @if (session('message'))

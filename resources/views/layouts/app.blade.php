@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'DuriGeo')</title>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('title', 'Symadu')</title>
 
     <!-- Tailwind -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
@@ -25,7 +26,6 @@
 </head>
 <body class="bg-gray-100 font-family-karla flex" x-data="{ isDropdownOpen: false, isAccountDropdownOpen: false, showModal: false }" onload="hideLoadingScreen()">
 
-
     @yield('content')
 
     <!-- Leaflet JS -->
@@ -36,14 +36,14 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js"></script>
-
-
     <script src="https://unpkg.com/{{ '@' }}geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
-
     <script src="{{ url('static/leaflet.ajax.js') }}"></script>
 
     <!-- Custom JavaScript -->
     <script src="{{ url('assets/js/scripts.js') }}"></script>
+
+    <!-- Chart.js (Latest Version) -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 
     @stack('scripts')
 </body>

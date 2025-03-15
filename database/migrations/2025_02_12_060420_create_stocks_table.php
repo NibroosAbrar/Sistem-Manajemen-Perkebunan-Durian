@@ -12,7 +12,7 @@ return new class extends Migration {
             $table->string('name'); // Nama barang
             $table->enum('category', ['bibit_pohon', 'pupuk', 'pestisida_fungisida', 'alat_perlengkapan']); // Kategori stok
             $table->integer('quantity'); // Jumlah stok
-            $table->string('unit'); // Satuan (Kg, Liter, dll.)
+            $table->string('unit')->nullable(); // Satuan (Kg, Liter, dll.)
             $table->date('date_added'); // Tanggal masuk stok
             $table->timestamps();
         });

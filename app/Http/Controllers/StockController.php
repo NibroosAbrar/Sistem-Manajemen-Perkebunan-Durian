@@ -26,7 +26,7 @@ class StockController extends Controller
             'name' => 'required|string',
             'category' => 'required|string',
             'quantity' => 'required|integer',
-            'unit' => 'required|string',
+            'unit' => 'nullable|string',
             'date_added' => 'required|date',
         ]);
 
@@ -41,7 +41,7 @@ class StockController extends Controller
         $request->validate([
             'name' => 'required|string',
             'quantity' => 'required|integer',
-            'unit' => 'required|string',
+            'unit' => 'nullable|string',
             'date_added' => 'required|date',
         ]);
 

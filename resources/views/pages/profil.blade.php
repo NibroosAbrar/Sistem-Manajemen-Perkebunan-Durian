@@ -1,6 +1,6 @@
 @extends('layouts.master')
 
-@section('title', 'Profil Akun - DuriGeo')
+@section('title', 'Profil Akun - Symadu')
 
 @section('content')
 <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mx-auto">

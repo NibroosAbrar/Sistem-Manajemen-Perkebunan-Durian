@@ -2,23 +2,35 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
-use Illuminate\Database\Seeder;
 use App\Models\Role;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Carbon;
 
-class RoleSeeder extends Seeder {
-    public function run() {
+class RoleSeeder extends Seeder
+{
+    public function run()
+    {
         Role::insert([
-            ['name' => 'Superadmin'],
-            ['name' => 'Manajer'],
-            ['name' => 'Operasional'],
-            ['name' => 'Guest'],
+            [
+                'name' => 'Superadmin',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ],
+            [
+                'name' => 'Manajer',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ],
+            [
+                'name' => 'Operasional',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ],
+            [
+                'name' => 'Guest',
+                'created_at' => Carbon::now(),
+                'updated_at' => Carbon::now()
+            ]
         ]);
     }
 }
-
-
-
-
-
-

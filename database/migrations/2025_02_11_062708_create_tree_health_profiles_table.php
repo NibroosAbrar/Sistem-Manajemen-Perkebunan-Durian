@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('tree_health_profiles', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('tree_id')->constrained('trees')->onDelete('cascade');
+            $table->date('tanggal_pemeriksaan');
+            $table->enum('status_kesehatan', ['Sehat', 'Stres', 'Terinfeksi', 'Mati']);
+            $table->text('gejala')->nullable();
+            $table->text('diagnosis')->nullable();
+            $table->text('tindakan_penanganan')->nullable();
+            $table->text('catatan_tambahan')->nullable();
+            $table->string('foto_kondisi')->nullable();
             $table->timestamps();
         });
     }

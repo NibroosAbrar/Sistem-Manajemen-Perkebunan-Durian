@@ -1,11 +1,11 @@
 {{-- filepath: /c:/laragon/www/laravel11/resources/views/pages/webgis.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Stok - DuriGeo')
+@section('title', 'Stok - Symadu')
 
 @section('content')
 
-<div id="loading-screen">
+<div id="loading-screen">i
 </div>
 
 <div class="w-full flex flex-col h-screen overflow-y-auto">
@@ -51,14 +51,11 @@
 
     <!-- Dropdown Menu -->
     <div x-show="isDropdownOpen" class="sidebar-dropdown py-2 mt-16 absolute left-6">
-        <h1 class="sidebar-header text-2xl font-bold text-center mb-4" style="color: #4aa87a;">DuriGeo</h1>
+        <h1 class="sidebar-header text-2xl font-bold text-center mb-4" style="color: #4aa87a;">Symadu</h1>
         <a href="{{ route('webgis') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Beranda</a>
-        <a href="dashboard.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Dashboard Kebun</a>
-        <a href="pengelolaan.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Kegiatan Pengelolaan Kebun</a>
-        <a href="produksi.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Kegiatan Panen dan Produksi</a>
-        {{-- <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Dashboard Kebun</a>
+        {{-- <a href="dashboard.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Dashboard Kebun</a> --}}
+        <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Dashboard Kebun</a>
         <a href="{{ route('pengelolaan') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Kegiatan Pengelolaan Kebun</a>
-        <a href="{{ route('produksi') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Kegiatan Panen dan Produksi</a> --}}
 
         @if(Auth::user()->role_id == 1) {{-- Superadmin --}}
             <a href="{{ route('stok') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Manajemen Stok Kebun</a>
@@ -79,6 +76,7 @@
         showEditForm: false,
         showDeleteModal: false,
         deleteStockId: null,
+        showEditConfirmModal: false,
 
         // Fungsi untuk mengatur ID yang akan dihapus dan menampilkan modal
         setDeleteStockId(id) {
@@ -113,7 +111,7 @@
                     <option value="alat_perlengkapan">Alat & Perlengkapan</option>
                 </select>
                 <input type="number" name="quantity" placeholder="Jumlah" required class="border p-2 rounded w-full mb-2">
-                <input type="text" name="unit" placeholder="Satuan" required class="border p-2 rounded w-full mb-2">
+                <input type="text" name="unit" placeholder="Satuan" class="border p-2 rounded w-full mb-2">
                 <input type="date" name="date_added" required class="border p-2 rounded w-full mb-2">
                 <div class="flex justify-between">
                     <button type="button" @click="showAddForm = false" class="bg-gray-500 text-white p-2 rounded">
@@ -172,15 +170,38 @@
                                                 <div class="flex flex-col space-y-2">
                                                     <input type="text" name="name" value="{{ $stock->name }}" required class="border p-2 rounded w-full">
                                                     <input type="number" name="quantity" value="{{ $stock->quantity }}" required class="border p-2 rounded w-full">
-                                                    <input type="text" name="unit" value="{{ $stock->unit }}" required class="border p-2 rounded w-full">
+                                                    <input type="text" name="unit" value="{{ $stock->unit }}" class="border p-2 rounded w-full">
                                                     <input type="date" name="date_added" value="{{ $stock->date_added }}" required class="border p-2 rounded w-full">
                                                     <div class="flex justify-between">
                                                         <button type="button" @click="editStockId = null; showEditForm = false" class="bg-gray-500 text-white p-2 rounded">
                                                             Batal
                                                         </button>
-                                                        <button type="submit" class="bg-blue-500 text-white p-2 rounded">
+                                                        <button type="button" @click="showEditConfirmModal = true" class="bg-blue-500 text-white p-2 rounded">
                                                             Simpan Perubahan
                                                         </button>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Modal Konfirmasi Edit -->
+                                                <div x-show="showEditConfirmModal" class="fixed inset-0 flex items-center justify-center z-50">
+                                                    <div class="modal-overlay absolute inset-0 bg-black opacity-50"></div>
+
+                                                    <div class="bg-white w-96 rounded-lg shadow-lg z-50 overflow-hidden">
+                                                        <div class="p-6">
+                                                            <h2 class="text-xl font-bold mb-4">Konfirmasi Perubahan</h2>
+                                                            <p class="mb-6">Apakah Anda yakin ingin menyimpan perubahan ini?</p>
+
+                                                            <div class="flex justify-end space-x-2">
+                                                                <button type="button" @click="showEditConfirmModal = false; editStockId = null; showEditForm = false"
+                                                                    class="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-md font-medium">
+                                                                    Batal
+                                                                </button>
+                                                                <button type="submit"
+                                                                    class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium">
+                                                                    Simpan
+                                                                </button>
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </form>
