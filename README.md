@@ -100,7 +100,7 @@ npm run dev
    - Manajemen user dan role
    - Konfigurasi sistem
 
-2. **Admin**
+2. **Manajer**
    - Manajemen data perkebunan
    - Akses ke semua fitur operasional
    - Monitoring dan reporting
