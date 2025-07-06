@@ -44,7 +44,7 @@ Symadu (Sistem Manajemen Perkebunan Durian) adalah sebuah aplikasi web yang dira
 - **Framework:** Laravel
 - **Frontend:** Blade Template, HTML, CSS, JavaScript
 - **Maps:** Leaflet.js
-- **Database:** MySQL
+- **Database:** PostgreSQL (PostGIS)
 - **Authentication:** Laravel Authentication
 - **CSS Framework:** Tailwind CSS
 - **Icons:** Font Awesome
