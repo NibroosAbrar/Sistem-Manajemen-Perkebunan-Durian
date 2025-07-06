@@ -1,10 +1,6 @@
 # Symadu - Sistem Manajemen Perkebunan Durian
-
-<p align="center">
-  <a href="https://github.com/NibroosAbrar/Sistem-Manajemen-Perkebunan-Durian">
-    <img src="public/assets/images/symadu-logo.png" alt="Symadu Logo" width="200">
-  </a>
-</p>
+![image](https://github.com/user-attachments/assets/f7166bbb-4160-4957-b831-f286e2d24267)
+![image](https://github.com/user-attachments/assets/e4e64f3f-553a-461b-88f9-9e12e0cb407e)
 
 ## 📋 Tentang Symadu
 
