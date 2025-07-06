@@ -34,6 +34,10 @@ html, body {
     width: 100%;
     overflow: hidden; /* Menghilangkan scroll */
     box-sizing: border-box;
+    font-family: var(--font-primary);
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333333;
 }
 
 .w-full.flex.flex-col.h-screen.overflow-y-hidden {
@@ -45,14 +49,13 @@ html, body {
 }
 
 #map {
-    height: calc(100% - 48px); /* Make the map height flexible */
-    width: 100%; /* Ensure the map takes the full width of the viewport */
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    position: absolute; /* Change to absolute to ensure elements are visible */
-    top: 48px; /* Adjust top position to account for header */
+    position: fixed;
+    top: 48px;
+    left: 0;
+    right: 0;
+    bottom: 0;
     z-index: 1;
+    transition: margin-left 0.3s ease;
 }
 
 .leaflet-marker-fade {
@@ -61,7 +64,24 @@ html, body {
 }
 
 header {
-    height: 48px; /* Kurangi tinggi header (default: 64px) */
+    height: 48px; /* Sesuaikan dengan ukuran yang lebih kecil */
+    width: 100%;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.5rem 1rem;
+    position: sticky;
+    z-index: 10;
+}
+
+header h1 {
+    font-family: var(--font-secondary);
+    font-weight: 600;
+    letter-spacing: -0.5px;
+    margin: 0;
+    padding: 0;
+    line-height: 1.2;
 }
 
 aside {
@@ -141,8 +161,17 @@ aside {
 }
 
 @media (max-width: 640px) {
+    .bg-header {
+        min-height: 48px;
+    }
+
     header {
-        height: 55px; /* Kurangi tinggi header lebih lanjut untuk layar kecil */
+        height: 48px;
+        padding: 0.5rem;
+    }
+
+    header h1 {
+        font-size: 1.1rem;
     }
 
     aside {
@@ -150,14 +179,12 @@ aside {
     }
 
     .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
-        height: calc(100% - 55px); /* Ensure the parent container takes full height minus header */
+        height: calc(100% - 48px); /* Ensure the parent container takes full height minus header */
     }
 
     #map {
-        height: calc(100% - 55px); /* Sesuaikan tinggi peta untuk layar kecil */
-        width: 100vw;
-        top: 55px; /* Adjust top position to account for header */
-        z-index: 1;
+        height: calc(100% - 48px); /* Sesuaikan untuk mobile */
+        top: 48px;
     }
 
     #camera-header {
@@ -176,23 +203,40 @@ aside {
 /* Specific styles for iOS devices */
 @media only screen and (max-width: 640px) and (device-width: 375px) and (-webkit-min-device-pixel-ratio: 2) {
     .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
-        height: calc(100% - 55px); /* Adjust height for iOS devices */
+        height: calc(100% - 48px); /* Adjust height for iOS devices */
     }
 }
 
 /* Specific styles for Android devices */
 @media only screen and (max-width: 640px) and (device-width: 360px) and (-webkit-min-device-pixel-ratio: 3) {
     .w-full.h-screen.overflow-x-hidden.border-t.flex.flex-col {
-        height: calc(100% - 55px); /* Adjust height for Android devices */
+        height: calc(100% - 48px); /* Adjust height for Android devices */
     }
 }
 
 .sidebar-header {
-    padding-left: 0px; /* Reduced padding */
-    padding-top: 0px;
-    margin-top: 0px;
-    margin-bottom: 0px; /* Reduced margin */
-    height: 10%;
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    background: white;
+    min-height: 80px;
+}
+
+.sidebar-brand {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    height: 40px;
+}
+
+.sidebar-brand span {
+    font-family: var(--font-primary);
+    font-weight: 700;
+    color: #10B981;
+    letter-spacing: -0.5px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .sidebar-dropdown {
@@ -299,6 +343,9 @@ aside {
     color: #666;
     margin-bottom: 5px;
     text-align: center;
+    font-family: var(--font-tertiary);
+    font-size: 0.95rem;
+    line-height: 1.6;
 }
 
 .info-value {
@@ -306,6 +353,8 @@ aside {
     font-weight: bold;
     color: #333;
     text-align: center;
+    font-family: var(--font-secondary);
+    font-weight: 600;
 }
 
 #noPhotoInfo button {
@@ -322,6 +371,467 @@ aside {
 
 #noPhotoInfo button:hover {
     background-color: #3d8c64;
+}
+
+.bg-header {
+    background: linear-gradient(to right, #ffffff, #f8f9fa);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    min-height: 48px; /* Sesuaikan dengan tinggi header */
+    width: 100%;
+    display: flex;
+    align-items: center;
+}
+
+header button {
+    transition: transform 0.2s ease;
+}
+
+header button:hover {
+    transform: scale(1.05);
+}
+
+header button:active {
+    transform: scale(0.95);
+}
+
+.account-dropdown {
+    position: absolute;
+    right: 0;
+    background: white;
+    min-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+.account-link {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #4B5563;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-family: var(--font-primary);
+    font-weight: 500;
+}
+
+.account-link:hover {
+    background-color: #10B981;
+    color: white;
+}
+
+/* Font Families */
+:root {
+    --font-primary: 'Poppins', sans-serif;
+    --font-secondary: 'Inter', sans-serif;
+    --font-tertiary: 'DM Sans', sans-serif;
+}
+
+/* Headings */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-secondary);
+    font-weight: 600;
+    line-height: 1.2;
+    color: #1a1a1a;
+}
+
+/* Content Text */
+p, .info-label {
+    font-family: var(--font-tertiary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+/* Info Values and Important Text */
+.info-value, .card p {
+    font-family: var(--font-secondary);
+    font-weight: 600;
+}
+
+/* Card Headers */
+.card h4 {
+    font-family: var(--font-primary);
+    font-weight: 500;
+    color: #4a5568;
+}
+
+/* Buttons */
+button, .btn {
+    font-family: var(--font-primary);
+    font-weight: 500;
+}
+
+/* Dropdown Menu */
+.account-dropdown {
+    position: absolute;
+    right: 0;
+    background: white;
+    min-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+    body {
+        font-size: 15px;
+    }
+
+    header {
+        height: 48px;
+    }
+
+    header h1 {
+        font-size: 1.1rem;
+    }
+
+    .card h4 {
+        font-size: 0.85rem;
+    }
+
+    .info-label {
+        font-size: 0.85rem;
+    }
+
+    .info-value {
+        font-size: 1rem;
+    }
+}
+
+/* Styling sidebar */
+.sidebar-menu {
+    position: fixed;
+    top: 0;
+    left: -300px;
+    width: 300px;
+    height: 100vh;
+    background: white;
+    transition: 0.3s ease;
+    z-index: 901;
+    box-shadow: 2px 0 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.sidebar-menu.active {
+    left: 0;
+}
+
+.sidebar-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid #f0f0f0;
+    background: white;
+    min-height: 80px;
+}
+
+.sidebar-brand {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: relative;
+    height: 40px;
+}
+
+.sidebar-brand span {
+    font-family: var(--font-primary);
+    font-weight: 700;
+    color: #10B981;
+    letter-spacing: -0.5px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.close-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #f3f4f6;
+}
+
+.close-btn i {
+    font-size: 16px;
+}
+
+.menu-items {
+    padding: 1rem 1rem 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.menu-item {
+    display: flex;
+    align-items: center;
+    padding: 0.85rem 1.25rem;
+    border-radius: 8px;
+    gap: 0.85rem;
+    color: #4B5563;
+    transition: all 0.2s ease;
+    font-family: var(--font-primary);
+}
+
+.menu-item:hover {
+    background: rgba(16, 185, 129, 0.1);
+    color: #10B981;
+    transform: translateX(4px);
+}
+
+.menu-item.active {
+    background: #10B981;
+    color: white;
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25);
+}
+
+.menu-item i {
+    margin-right: 2.5rem;
+    width: 24px;
+    text-align: center;
+    font-size: 1.125rem;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: center;
+}
+
+.menu-item span {
+    font-size: 0.95rem;
+    font-weight: 500;
+    letter-spacing: 0.01rem;
+
+}
+
+.menu-item:hover i {
+    transform: translateX(2px);
+}
+
+/* Dropdown Profile Styles */
+.account-dropdown {
+    position: absolute;
+    right: 0;
+    background: white;
+    min-width: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+}
+
+/* Perbaikan untuk dropdown menu profil */
+header .profile-button + div {
+    position: absolute;
+    right: 0;
+    transform-origin: top right;
+    max-height: calc(100vh - 100px);
+    overflow-y: auto;
+    max-width: none;
+    width: auto;
+    min-width: 180px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border-radius: 0.5rem;
+    background-color: white;
+    margin-top: 5px;
+    z-index: 1100;
+}
+
+.account-link {
+    display: block;
+    padding: 0.75rem 1rem;
+    color: #4B5563;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    font-family: var(--font-primary);
+    font-weight: 500;
+}
+
+/* Header Profile Button Hover */
+header button:hover {
+    transform: scale(0.85);
+    border-color: #10B981;
+}
+
+/* Override efek hover default untuk tombol khusus */
+header .profile-button:hover,
+header .hamburger-button:hover {
+    transform: translateY(-2px) !important;
+    border-color: #059669 !important;
+}
+
+/* Styling untuk tombol profil */
+.profile-button {
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.profile-button img {
+    object-fit: cover;
+    width: 100%;
+    height: 100%;
+}
+
+.profile-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-button:active {
+    transform: translateY(0);
+}
+
+/* Styling untuk tombol hamburger */
+.hamburger-button {
+    position: relative;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+.hamburger-button i {
+    font-size: 1.25rem;
+    transition: transform 0.2s ease;
+}
+
+.hamburger-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.hamburger-button:active {
+    transform: translateY(0);
+}
+
+.hamburger-button:hover i {
+    transform: rotate(90deg);
+}
+
+/* Pastikan leaflet control tetap di atas sidebar */
+.leaflet-control-container {
+    z-index: 950 !important;
+}
+
+.leaflet-control-sidebar {
+    z-index: 950 !important;
+}
+
+.leaflet-popup {
+    z-index: 950 !important;
+}
+
+/* Pastikan tombol kontrol Leaflet selalu di atas sidebar */
+.leaflet-top,
+.leaflet-bottom {
+    z-index: 950 !important;
+}
+
+/* Override sidebar-active style untuk map agar tidak bergeser */
+#map.sidebar-active {
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+/* Ensure sidebar info panels are above the map but below modals */
+.sidebar {
+    z-index: 900;
+}
+
+/* Modal should be above everything */
+.modal-overlay,
+.modal-container {
+    z-index: 9999;
+}
+
+/* Sidebar overlay */
+.sidebar-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    z-index: 900; /* Di bawah sidebar tetapi di atas map */
+    display: none;
+    transition: all 0.3s ease;
+    opacity: 0;
+}
+
+.sidebar-overlay.active {
+    display: block;
+}
+
+/* Responsif */
+@media (max-width: 768px) {
+    .sidebar-menu {
+        width: 100%;
+        max-width: 300px;
+        left: -100%;
+    }
+}
+
+/* Override map sidebar active override */
+#map.sidebar-active {
+    margin-left: 0 !important;
+    width: 100% !important;
+}
+
+/* Override map position untuk mobile */
+@media (max-width: 640px) {
+    #map {
+        top: 0 !important;
+        height: 100% !important;
+    }
+}
+
+/* Footer sidebar */
+.sidebar-footer {
+    margin-top: auto;
+    padding: 0.5rem;
+    text-align: center;
+    font-size: 0.65rem;
+    color: #94a3b8;
+    border-top: 1px solid #f0f0f0;
+    background-color: #f9fafb;
+    position: sticky;
+    bottom: 0;
+}
+
+.sidebar-footer p {
+    margin: 0;
+    font-family: var(--font-tertiary);
+    opacity: 0.6;
+}
+
+/* Profile dropdown container */
+.profile-dropdown-container {
+    position: relative;
+}
+
+/* Styling untuk dropdown profil*/
+.profile-dropdown {
+    position: absolute;
+    top: calc(100% + 5px) !important;
+    right: 0 !important;
+    width: 180px !important;
+    padding: 8px 0;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    transform-origin: top right;
+    overflow: hidden;
 }
 
 

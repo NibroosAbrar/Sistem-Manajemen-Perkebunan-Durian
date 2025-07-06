@@ -9,7 +9,7 @@ use App\Models\User;
 class SuperAdminSeeder extends Seeder {
     public function run(): void {
         User::firstOrCreate(
-            ['email' => 'superadmin@durigeo.com'],
+            ['email' => 'superadmin@symadu.com'],
             [
                 'name' => 'Superadmin',
                 'password' => Hash::make('password123'),

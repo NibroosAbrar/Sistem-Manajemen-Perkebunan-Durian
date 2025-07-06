@@ -11,9 +11,12 @@ class TreePesticideController extends Controller
     {
         $validated = $request->validate([
             'tree_id' => 'required|exists:trees,id',
-            'nama_pestisida' => 'nullable|string',
-            'jenis_pestisida' => 'nullable|string',
-            'dosis' => 'nullable|numeric',
+            'tanggal_pestisida' => 'required|date',
+            'nama_pestisida' => 'required|string',
+            'jenis_pestisida' => 'required|string',
+            'bentuk_pestisida' => 'nullable|string',
+            'dosis' => 'required|numeric',
+            'unit' => 'required|string',
         ]);
 
         TreePesticide::create($validated);

@@ -16,8 +16,13 @@ class TreePesticide extends Model
         'tanggal_pestisida',
         'nama_pestisida',
         'jenis_pestisida',
+        'bentuk_pestisida',
         'dosis',
         'unit'
+    ];
+
+    protected $attributes = [
+        'unit' => 'ml/tanaman'
     ];
 
     // Relasi dengan model Tree

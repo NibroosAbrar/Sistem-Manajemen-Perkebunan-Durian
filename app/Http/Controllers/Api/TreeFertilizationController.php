@@ -32,7 +32,8 @@ class TreeFertilizationController extends Controller
                 'nama_pupuk' => 'required|string',
                 'jenis_pupuk' => 'required|string',
                 'dosis_pupuk' => 'required|numeric',
-                'tanggal_pemupukan' => 'required|date'
+                'tanggal_pemupukan' => 'required|date',
+                'unit' => 'required|in:g/tanaman'
             ]);
 
             $fertilization = TreeFertilization::create($validated);
@@ -76,7 +77,8 @@ class TreeFertilizationController extends Controller
                 'nama_pupuk' => 'string',
                 'jenis_pupuk' => 'string',
                 'dosis_pupuk' => 'numeric',
-                'tanggal_pemupukan' => 'date'
+                'tanggal_pemupukan' => 'date',
+                'unit' => 'in:g/tanaman'
             ]);
 
             $fertilization->update($validated);

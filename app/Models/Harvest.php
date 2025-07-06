@@ -21,6 +21,12 @@ class Harvest extends Model
         'unit'
     ];
 
+    protected $casts = [
+        'fruit_condition' => 'decimal:2',
+        'total_weight' => 'decimal:2',
+        'average_weight_per_fruit' => 'decimal:2'
+    ];
+
     // Relasi dengan model Tree
     public function tree()
     {

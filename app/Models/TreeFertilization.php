@@ -21,6 +21,10 @@ class TreeFertilization extends Model
         'unit'
     ];
 
+    protected $attributes = [
+        'unit' => 'g/tanaman'
+    ];
+
     // Relasi dengan model Tree
     public function tree()
     {

@@ -1,17 +1,47 @@
 {
-    "private": true,
-    "type": "module",
-    "scripts": {
-        "build": "vite build",
-        "dev": "vite"
-    },
-    "devDependencies": {
-        "autoprefixer": "^10.4.20",
-        "axios": "^1.7.4",
-        "concurrently": "^9.0.1",
-        "laravel-vite-plugin": "^1.2.0",
-        "postcss": "^8.4.47",
-        "tailwindcss": "^3.4.13",
-        "vite": "^6.0.11"
-    }
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "vite build",
+    "dev": "vite",
+    "test": "playwright test",
+    "test:chrome": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:safari": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project=\"Mobile Chrome\" --project=\"Mobile Safari\"",
+    "test:tablet": "playwright test --project=iPad --project=\"iPad Pro\"",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report",
+    "test:all": "playwright test auth.spec.js dashboard.spec.js webgis.spec.js pengelolaan.spec.js stok-simple.spec.js akun.spec.js",
+    "test:auth": "playwright test auth.spec.js",
+    "test:dashboard": "playwright test dashboard.spec.js",
+    "test:webgis": "playwright test webgis.spec.js",
+    "test:pengelolaan": "playwright test pengelolaan.spec.js",
+    "test:stok": "playwright test stok-simple.spec.js",
+    "test:akun": "playwright test akun.spec.js",
+    "create-table": "node test-results/table-parser.js",
+    "test-with-table": "npm run test && npm run create-table",
+
+    "test:chromium": "playwright test --project=chromium",
+    "test:android": "playwright test --project=android",
+    "test:iphone": "playwright test --project=iphone",
+    "test:ipad": "playwright test --project=ipad",
+    "update-cumulative": "node test-results/table-parser-cumulative.js",
+    "test:chromium-cum": "npm run test:chromium && npm run update-cumulative",
+    "test:android-cum": "npm run test:android && npm run update-cumulative",
+    "test:iphone-cum": "npm run test:iphone && npm run update-cumulative",
+    "test:ipad-cum": "npm run test:ipad && npm run update-cumulative",
+    "test:all-cum": "npm run test:chromium-cum && npm run test:android-cum && npm run test:iphone-cum && npm run test:ipad-cum"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.52.0",
+    "@types/node": "^22.15.29",
+    "autoprefixer": "^10.4.20",
+    "axios": "^1.7.4",
+    "concurrently": "^9.0.1",
+    "laravel-vite-plugin": "^1.2.0",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.13",
+    "vite": "^6.0.11"
+  }
 }

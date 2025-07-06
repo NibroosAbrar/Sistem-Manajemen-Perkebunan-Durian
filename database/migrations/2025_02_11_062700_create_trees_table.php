@@ -8,11 +8,12 @@ use Illuminate\Support\Facades\DB;
 return new class extends Migration {
     public function up() {
         Schema::create('trees', function (Blueprint $table) {
-            $table->id();
+            $table->string('id', 20)->primary();
             $table->foreignId('plantation_id')->constrained('plantations')->onDelete('cascade');
             $table->string('varietas');
             $table->year('tahun_tanam');
-            $table->enum('health_status', ['Sehat', 'Stres', 'Terinfeksi', 'Mati']);
+            $table->enum('health_status', ['Sehat', 'Stres', 'Sakit', 'Mati']);
+            $table->enum('fase', ['Generatif', 'Vegetatif']);
             $table->decimal('latitude', 10, 8)->nullable(); // Will be calculated from centroid
             $table->decimal('longitude', 11, 8)->nullable(); // Will be calculated from centroid
             $table->geometry('canopy_geometry'); // Poligon

@@ -19,7 +19,7 @@ class TreeHealthProfileController extends Controller
         try {
             $tree = Tree::findOrFail($treeId);
             $healthProfiles = $tree->healthProfiles()->orderBy('tanggal_pemeriksaan', 'desc')->get();
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $healthProfiles,
@@ -40,25 +40,25 @@ class TreeHealthProfileController extends Controller
     {
         try {
             DB::beginTransaction();
-            
+
             // Validasi input
             $request->validate([
                 'tree_id' => 'required|exists:trees,id',
                 'tanggal_pemeriksaan' => 'required|date',
-                'status_kesehatan' => 'required|in:Sehat,Stres,Terinfeksi,Mati',
+                'status_kesehatan' => 'required|in:Sehat,Stres,Sakit,Mati',
                 'gejala' => 'nullable|string',
                 'diagnosis' => 'nullable|string',
                 'tindakan_penanganan' => 'nullable|string',
                 'catatan_tambahan' => 'nullable|string',
                 'foto_kondisi' => 'nullable|image|max:2048'
             ]);
-            
+
             // Upload foto jika ada
             $fotoPath = null;
             if ($request->hasFile('foto_kondisi')) {
                 $fotoPath = $request->file('foto_kondisi')->store('health-profiles', 'public');
             }
-            
+
             // Buat riwayat kesehatan baru
             $healthProfile = new TreeHealthProfile([
                 'tree_id' => $request->tree_id,
@@ -70,22 +70,22 @@ class TreeHealthProfileController extends Controller
                 'catatan_tambahan' => $request->catatan_tambahan,
                 'foto_kondisi' => $fotoPath
             ]);
-            
+
             $healthProfile->save();
-            
+
             // Update status kesehatan pohon berdasarkan tanggal pemeriksaan terbaru
             $latestProfile = TreeHealthProfile::where('tree_id', $request->tree_id)
                 ->orderBy('tanggal_pemeriksaan', 'desc')
                 ->first();
-                
+
             if ($latestProfile) {
                 $tree = Tree::findOrFail($request->tree_id);
                 $tree->health_status = $latestProfile->status_kesehatan;
                 $tree->save();
             }
-            
+
             DB::commit();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Riwayat kesehatan berhasil disimpan',
@@ -93,7 +93,7 @@ class TreeHealthProfileController extends Controller
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menyimpan riwayat kesehatan: ' . $e->getMessage()
@@ -108,14 +108,14 @@ class TreeHealthProfileController extends Controller
     {
         try {
             $healthProfile = TreeHealthProfile::find($id);
-            
+
             if (!$healthProfile) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Data riwayat kesehatan tidak ditemukan'
                 ], 404);
             }
-            
+
             return response()->json([
                 'success' => true,
                 'data' => $healthProfile
@@ -135,31 +135,31 @@ class TreeHealthProfileController extends Controller
     {
         try {
             DB::beginTransaction();
-            
+
             $healthProfile = TreeHealthProfile::findOrFail($id);
-            
+
             // Validasi input
             $request->validate([
                 'tanggal_pemeriksaan' => 'required|date',
-                'status_kesehatan' => 'required|in:Sehat,Stres,Terinfeksi,Mati',
+                'status_kesehatan' => 'required|in:Sehat,Stres,Sakit,Mati',
                 'gejala' => 'nullable|string',
                 'diagnosis' => 'nullable|string',
                 'tindakan_penanganan' => 'nullable|string',
                 'catatan_tambahan' => 'nullable|string',
                 'foto_kondisi' => 'nullable|image|max:2048'
             ]);
-            
+
             // Hapus foto lama jika ada foto baru
             if ($request->hasFile('foto_kondisi') && $healthProfile->foto_kondisi) {
                 Storage::disk('public')->delete($healthProfile->foto_kondisi);
             }
-            
+
             // Upload foto baru jika ada
             if ($request->hasFile('foto_kondisi')) {
                 $fotoPath = $request->file('foto_kondisi')->store('health-profiles', 'public');
                 $healthProfile->foto_kondisi = $fotoPath;
             }
-            
+
             // Update data
             $healthProfile->tanggal_pemeriksaan = $request->tanggal_pemeriksaan;
             $healthProfile->status_kesehatan = $request->status_kesehatan;
@@ -167,22 +167,22 @@ class TreeHealthProfileController extends Controller
             $healthProfile->diagnosis = $request->diagnosis;
             $healthProfile->tindakan_penanganan = $request->tindakan_penanganan;
             $healthProfile->catatan_tambahan = $request->catatan_tambahan;
-            
+
             $healthProfile->save();
-            
+
             // Update status kesehatan pohon berdasarkan tanggal pemeriksaan terbaru
             $latestProfile = TreeHealthProfile::where('tree_id', $healthProfile->tree_id)
                 ->orderBy('tanggal_pemeriksaan', 'desc')
                 ->first();
-                
+
             if ($latestProfile) {
                 $tree = Tree::findOrFail($healthProfile->tree_id);
                 $tree->health_status = $latestProfile->status_kesehatan;
                 $tree->save();
             }
-            
+
             DB::commit();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Riwayat kesehatan berhasil diupdate',
@@ -190,7 +190,7 @@ class TreeHealthProfileController extends Controller
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengupdate riwayat kesehatan: ' . $e->getMessage()
@@ -205,50 +205,50 @@ class TreeHealthProfileController extends Controller
     {
         try {
             DB::beginTransaction();
-            
+
             // Cek apakah data ada
             $healthProfile = TreeHealthProfile::find($id);
-            
+
             if (!$healthProfile) {
                 return response()->json([
                     'success' => false,
                     'message' => 'Data riwayat kesehatan tidak ditemukan'
                 ], 404);
             }
-            
+
             $treeId = $healthProfile->tree_id;
-            
+
             // Hapus foto jika ada
             if ($healthProfile->foto_kondisi) {
                 Storage::disk('public')->delete($healthProfile->foto_kondisi);
             }
-            
+
             $healthProfile->delete();
-            
+
             // Update status kesehatan pohon berdasarkan riwayat terbaru
             $latestProfile = TreeHealthProfile::where('tree_id', $treeId)
                 ->orderBy('tanggal_pemeriksaan', 'desc')
                 ->first();
-                
+
             if ($latestProfile) {
                 $tree = Tree::findOrFail($treeId);
                 $tree->health_status = $latestProfile->status_kesehatan;
                 $tree->save();
             }
-            
+
             DB::commit();
-            
+
             return response()->json([
                 'success' => true,
                 'message' => 'Riwayat kesehatan berhasil dihapus'
             ]);
         } catch (Exception $e) {
             DB::rollBack();
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus riwayat kesehatan: ' . $e->getMessage()
             ], 500);
         }
     }
-} 
+}

@@ -25,22 +25,51 @@ class TreeController extends Controller
         try {
             DB::beginTransaction();
 
-            // Ambil semua ID yang sudah digunakan
-            $usedIds = Tree::pluck('id')->toArray();
+            // Generate ID alfanumerik pohon
+            $id = $request->id;
+            $plantationId = $request->plantation_id;
 
-            // Cari ID terendah yang belum digunakan
-            $newId = 1;
-            while (in_array($newId, $usedIds)) {
-                $newId++;
+            if (empty($plantationId)) {
+                throw new Exception('ID Kebun tidak valid');
+            }
+
+            // Jika tidak ada ID yang dikirim, generate ID baru
+            if (empty($id)) {
+                // Ambil ID pohon terbaru yang berupa angka saja
+                $latestNumericId = Tree::where('id', 'regexp', '^[0-9]+$')
+                    ->orderByRaw('CAST(id AS UNSIGNED) DESC')
+                    ->value('id');
+
+                // Jika tidak ada ID numerik, mulai dari 1
+                $newNumericId = $latestNumericId ? (int)$latestNumericId + 1 : 1;
+                $id = (string)$newNumericId;
+            } else {
+                // Pastikan ID dalam huruf kapital jika berisi huruf
+                $id = strtoupper($id);
+            }
+
+            // Periksa apakah ID sudah digunakan di plantation yang sama
+            $exists = Tree::where('id', $id)
+                        ->where('plantation_id', $plantationId)
+                        ->exists();
+
+            if ($exists) {
+                throw new Exception('ID pohon sudah digunakan di blok kebun yang sama');
+            }
+
+            // Jika ID berisi angka dan huruf, periksa apakah formatnya valid
+            if (preg_match('/^(\d+)([A-Z]+)$/', $id)) {
+                \Log::info('Store - Valid alphanumeric ID format: ' . $id);
             }
 
             $tree = new Tree();
-            // Set ID manual ke ID terendah yang tersedia
-            $tree->id = $newId;
+            // Set ID
+            $tree->id = $id;
             $tree->plantation_id = $request->plantation_id;
             $tree->varietas = $request->varietas;
             $tree->tahun_tanam = $request->tahun_tanam ?: null;
             $tree->health_status = $request->health_status;
+            $tree->fase = $request->fase;
             $tree->sumber_bibit = $request->sumber_bibit;
 
             // Validate and clean WKT format for canopy
@@ -150,6 +179,7 @@ class TreeController extends Controller
                 'varietas' => $request->varietas,
                 'tahun_tanam' => $request->tahun_tanam,
                 'health_status' => $request->health_status,
+                'fase' => $request->fase,
                 'method' => $request->method(),
                 'has_plantation_id' => $request->has('plantation_id'),
                 'content_type' => $request->header('Content-Type')
@@ -161,13 +191,47 @@ class TreeController extends Controller
             $oldTree = Tree::findOrFail($id);
             $oldData = $oldTree->toArray();
 
-            // Ambil data pohon untuk diupdate
-            $tree = Tree::findOrFail($id);
+            // Periksa apakah ID pohon akan diubah
+            $newId = $request->filled('id') ? strtoupper($request->id) : $id;
+            $isChangingId = $newId !== $id;
+
+            // Jika ID akan berubah, pastikan ID baru tidak sudah digunakan
+            if ($isChangingId) {
+                // Log untuk debugging
+                \Log::info('Changing tree ID from ' . $id . ' to ' . $newId);
+
+                // Periksa apakah ID baru sudah digunakan di plantation yang sama
+                $plantationId = $request->plantation_id ?: $oldTree->plantation_id;
+                $exists = Tree::where('id', $newId)
+                            ->where('plantation_id', $plantationId)
+                            ->exists();
+
+                if ($exists) {
+                    throw new Exception('ID pohon baru sudah digunakan di blok kebun yang sama');
+                }
+
+                // Validasi format ID baru jika berisi angka dan huruf
+                if (!preg_match('/^(\d+)([A-Z]+)$/', $newId)) {
+                    throw new Exception('Format ID tidak valid. Gunakan format angka diikuti huruf (contoh: 1A, 2B, 10C)');
+                } else {
+                    \Log::info('Update - Valid alphanumeric ID format: ' . $newId);
+                }
+            }
+
+            // Jika ID berubah, buat pohon baru dengan data lama
+            if ($isChangingId) {
+                // Buat objek pohon baru dengan ID baru
+                $tree = new Tree();
+                $tree->id = $newId;
+            } else {
+                // Ambil data pohon untuk diupdate jika ID tidak berubah
+                $tree = $oldTree;
+            }
 
             // Pastikan plantation_id tidak null
             if (!$request->has('plantation_id') || $request->plantation_id === null) {
                 \Log::warning('plantation_id is null or not provided, using existing value');
-                // Gunakan nilai yang sudah ada jika tidak ada di request
+                $tree->plantation_id = $oldTree->plantation_id;
             } else {
                 $tree->plantation_id = $request->plantation_id;
             }
@@ -175,18 +239,32 @@ class TreeController extends Controller
             // Update data pohon dengan nilai dari request
             if ($request->has('varietas')) {
                 $tree->varietas = $request->varietas;
+            } elseif ($isChangingId) {
+                $tree->varietas = $oldTree->varietas;
             }
 
             if ($request->has('tahun_tanam')) {
                 $tree->tahun_tanam = $request->tahun_tanam;
+            } elseif ($isChangingId) {
+                $tree->tahun_tanam = $oldTree->tahun_tanam;
             }
 
             if ($request->has('health_status')) {
                 $tree->health_status = $request->health_status;
+            } elseif ($isChangingId) {
+                $tree->health_status = $oldTree->health_status;
+            }
+
+            if ($request->has('fase')) {
+                $tree->fase = $request->fase;
+            } elseif ($isChangingId) {
+                $tree->fase = $oldTree->fase;
             }
 
             if ($request->has('sumber_bibit')) {
                 $tree->sumber_bibit = $request->sumber_bibit;
+            } elseif ($isChangingId) {
+                $tree->sumber_bibit = $oldTree->sumber_bibit;
             }
 
             // Log tree data sebelum disimpan
@@ -198,13 +276,23 @@ class TreeController extends Controller
                 'health_status' => $tree->health_status,
             ]);
 
-            // Jika ada perubahan geometri
-            if ($request->filled('canopy_geometry')) {
+            // Jika ada perubahan geometri atau ID berubah
+            if ($request->filled('canopy_geometry') || $isChangingId) {
                 // Validate and clean WKT format for canopy
-                $canopy = trim($request->canopy_geometry);
+                $canopy = $request->filled('canopy_geometry') ? trim($request->canopy_geometry) : null;
+
+                if (empty($canopy) && $isChangingId) {
+                    // Jika geometri kosong dan ID berubah, ambil geometri dari pohon lama
+                    $existingGeometry = DB::select("SELECT ST_AsText(canopy_geometry) as canopy_geometry FROM trees WHERE id = ?", [$id])[0]->canopy_geometry;
+
+                    if (!empty($existingGeometry)) {
+                        \Log::info('Update - Using existing geometry: ' . $existingGeometry);
+                        $canopy = $existingGeometry;
+                    }
+                }
 
                 if (empty($canopy)) {
-                    // Jika geometri kosong, coba ambil geometri yang sudah ada
+                    // Jika geometri masih kosong, coba ambil geometri yang sudah ada
                     $existingGeometry = DB::select("SELECT ST_AsText(canopy_geometry) as canopy_geometry FROM trees WHERE id = ?", [$id])[0]->canopy_geometry;
 
                     if (empty($existingGeometry)) {
@@ -265,7 +353,7 @@ class TreeController extends Controller
             // Update data pemupukan
             if ($request->filled('nama_pupuk') && $request->filled('jenis_pupuk') && $request->filled('dosis_pupuk')) {
                 // Cek apakah sudah ada data pemupukan
-                $fertilization = $tree->fertilizations()->latest()->first();
+                $fertilization = $isChangingId ? null : $tree->fertilizations()->latest()->first();
 
                 if ($fertilization) {
                     // Update data yang sudah ada
@@ -282,12 +370,26 @@ class TreeController extends Controller
                         'dosis_pupuk' => $request->dosis_pupuk,
                     ]);
                 }
+            } elseif ($isChangingId) {
+                // Copy data pemupukan pohon lama ke pohon baru jika ID berubah
+                $fertilizations = $oldTree->fertilizations;
+                foreach ($fertilizations as $fertilization) {
+                    $tree->fertilizations()->create([
+                        'nama_pupuk' => $fertilization->nama_pupuk,
+                        'jenis_pupuk' => $fertilization->jenis_pupuk,
+                        'dosis_pupuk' => $fertilization->dosis_pupuk,
+                        'tanggal_pemupukan' => $fertilization->tanggal_pemupukan,
+                        'unit' => $fertilization->unit,
+                        'created_at' => $fertilization->created_at,
+                        'updated_at' => now(),
+                    ]);
+                }
             }
 
             // Update data pestisida
             if ($request->filled('nama_pestisida') || $request->filled('jenis_pestisida') || $request->filled('dosis')) {
                 // Cek apakah sudah ada data pestisida
-                $pesticide = $tree->pesticides()->latest()->first();
+                $pesticide = $isChangingId ? null : $tree->pesticides()->latest()->first();
 
                 if ($pesticide) {
                     // Update data yang sudah ada
@@ -304,13 +406,27 @@ class TreeController extends Controller
                         'dosis' => $request->dosis,
                     ]);
                 }
+            } elseif ($isChangingId) {
+                // Copy data pestisida pohon lama ke pohon baru jika ID berubah
+                $pesticides = $oldTree->pesticides;
+                foreach ($pesticides as $pesticide) {
+                    $tree->pesticides()->create([
+                        'nama_pestisida' => $pesticide->nama_pestisida,
+                        'jenis_pestisida' => $pesticide->jenis_pestisida,
+                        'dosis' => $pesticide->dosis,
+                        'tanggal_penyemprotan' => $pesticide->tanggal_penyemprotan,
+                        'unit' => $pesticide->unit,
+                        'created_at' => $pesticide->created_at,
+                        'updated_at' => now(),
+                    ]);
+                }
             }
 
             // Update data panen
             if ($request->filled('fruit_count') && $request->filled('total_weight') &&
                 $request->filled('average_weight_per_fruit') && $request->filled('fruit_condition')) {
                 // Cek apakah sudah ada data panen
-                $harvest = $tree->harvests()->latest()->first();
+                $harvest = $isChangingId ? null : $tree->harvests()->latest()->first();
 
                 if ($harvest) {
                     // Update data yang sudah ada
@@ -329,18 +445,43 @@ class TreeController extends Controller
                         'fruit_condition' => $request->fruit_condition,
                     ]);
                 }
+            } elseif ($isChangingId) {
+                // Copy data panen pohon lama ke pohon baru jika ID berubah
+                $harvests = $oldTree->harvests;
+                foreach ($harvests as $harvest) {
+                    $tree->harvests()->create([
+                        'fruit_count' => $harvest->fruit_count,
+                        'total_weight' => $harvest->total_weight,
+                        'average_weight_per_fruit' => $harvest->average_weight_per_fruit,
+                        'fruit_condition' => $harvest->fruit_condition,
+                        'tanggal_panen' => $harvest->tanggal_panen,
+                        'created_at' => $harvest->created_at,
+                        'updated_at' => now(),
+                    ]);
+                }
+            }
+
+            // Jika ID berubah, hapus pohon lama setelah semua data disalin
+            if ($isChangingId) {
+                $oldTree->delete();
+                \Log::info('Old tree with ID ' . $id . ' has been deleted, replaced with ID ' . $newId);
             }
 
             DB::commit();
 
             // Ambil data pohon setelah diupdate
-            $newTree = Tree::findOrFail($id);
+            $newTree = Tree::findOrFail($isChangingId ? $newId : $id);
             $newData = $newTree->toArray();
 
             // Bandingkan data lama dan baru untuk melacak perubahan
             $changes = [];
             foreach ($newData as $key => $value) {
-                if (isset($oldData[$key]) && $oldData[$key] != $value) {
+                if ($key === 'id' && $isChangingId) {
+                    $changes['id'] = [
+                        'old' => $id,
+                        'new' => $newId
+                    ];
+                } elseif (isset($oldData[$key]) && $oldData[$key] != $value) {
                     $changes[$key] = [
                         'old' => $oldData[$key],
                         'new' => $value
@@ -350,14 +491,14 @@ class TreeController extends Controller
 
             // Log tree data setelah disimpan
             \Log::info('Tree updated successfully:', [
-                'id' => $tree->id,
-                'plantation_id' => $tree->plantation_id,
-                'varietas' => $tree->varietas,
+                'id' => $newTree->id,
+                'plantation_id' => $newTree->plantation_id,
+                'varietas' => $newTree->varietas,
                 'changes' => $changes
             ]);
 
             // Ambil data geometri dengan raw SQL
-            $geometry = DB::select("SELECT ST_AsText(canopy_geometry) as canopy_geometry FROM trees WHERE id = ?", [$id])[0]->canopy_geometry;
+            $geometry = DB::select("SELECT ST_AsText(canopy_geometry) as canopy_geometry FROM trees WHERE id = ?", [$newTree->id])[0]->canopy_geometry;
 
             // Tambahkan data geometri ke respons
             $newData['canopy_geometry'] = $geometry;
@@ -392,6 +533,10 @@ class TreeController extends Controller
             // Log untuk debugging
             \Log::info('getAll called with request: ' . json_encode(request()->all()));
 
+            // Cek apakah request memaksa refresh
+            $forceRefresh = request()->has('force') && request()->force === 'true';
+            \Log::info('Force refresh: ' . ($forceRefresh ? 'true' : 'false'));
+
             // Ambil data pohon dari database dengan query yang lebih lengkap
             $trees = DB::table('trees')
                 ->select([
@@ -400,6 +545,7 @@ class TreeController extends Controller
                     'varietas',
                     'tahun_tanam',
                     'health_status',
+                    'fase',
                     'latitude',
                     'longitude',
                     'sumber_bibit',
@@ -417,7 +563,8 @@ class TreeController extends Controller
             $response = [
                 'success' => true,
                 'data' => $trees,
-                'timestamp' => now()->timestamp
+                'timestamp' => now()->timestamp,
+                'forced' => $forceRefresh
             ];
 
             return response()->json($response);
@@ -449,12 +596,8 @@ class TreeController extends Controller
             // Hapus pohon
             $tree->delete();
 
-            // Reset sequence jika ini adalah data terakhir
-            $remainingTrees = Tree::count();
-            if ($remainingTrees === 0) {
-                // Reset sequence untuk PostgreSQL
-                DB::statement("ALTER SEQUENCE trees_id_seq RESTART WITH 1");
-            }
+            // Hapus bagian reset sequence karena ID pohon bukan auto-increment
+            // dan sequence trees_id_seq tidak ada di database
 
             DB::commit();
 
@@ -548,7 +691,7 @@ class TreeController extends Controller
                 'jenis_pupuk' => 'required|in:Organik,Anorganik',
                 'bentuk_pupuk' => 'required|string',
                 'dosis_pupuk' => 'required|numeric',
-                'unit' => 'required|in:kg,g,ml,l'
+                'unit' => 'required|in:g/tanaman,ml/tanaman'
             ]);
 
             // Simpan data pemupukan
@@ -645,7 +788,7 @@ class TreeController extends Controller
                 'jenis_pupuk' => 'required|in:Organik,Anorganik',
                 'bentuk_pupuk' => 'required|string',
                 'dosis_pupuk' => 'required|numeric',
-                'unit' => 'required|in:kg,g,ml,l'
+                'unit' => 'required|in:g/tanaman,ml/tanaman'
             ]);
 
             $fertilization = TreeFertilization::findOrFail($id);
@@ -709,8 +852,9 @@ class TreeController extends Controller
                 'tanggal_pestisida' => 'required|date',
                 'nama_pestisida' => 'required|string',
                 'jenis_pestisida' => 'required|in:Insektisida,Fungisida,Herbisida,Bakterisida',
-                'dosis_pestisida' => 'required|numeric',
-                'unit' => 'required|in:ml,l,g,kg'
+                'bentuk_pestisida' => 'nullable|string',
+                'dosis' => 'required|numeric',
+                'unit' => 'required|in:ml/tanaman,l/tanaman,g/tanaman'
             ]);
 
             $pesticide = TreePesticide::findOrFail($id);
@@ -718,7 +862,8 @@ class TreeController extends Controller
                 'tanggal_pestisida' => $validated['tanggal_pestisida'],
                 'nama_pestisida' => $validated['nama_pestisida'],
                 'jenis_pestisida' => $validated['jenis_pestisida'],
-                'dosis' => $validated['dosis_pestisida'],
+                'bentuk_pestisida' => $validated['bentuk_pestisida'] ?? null,
+                'dosis' => $validated['dosis'],
                 'unit' => $validated['unit']
             ]);
 
@@ -802,7 +947,7 @@ class TreeController extends Controller
                 'total_weight' => 'required|numeric',
                 'fruit_count' => 'required|integer',
                 'average_weight_per_fruit' => 'required|numeric',
-                'fruit_condition' => 'required|in:Baik,Cukup,Kurang',
+                'fruit_condition' => 'required|numeric|min:0|max:100',
                 'unit' => 'required|in:kg,g'
             ]);
 
@@ -860,7 +1005,7 @@ class TreeController extends Controller
                 'total_weight' => 'required|numeric',
                 'fruit_count' => 'required|integer',
                 'average_weight_per_fruit' => 'required|numeric',
-                'fruit_condition' => 'required|string|in:Baik,Cukup,Kurang',
+                'fruit_condition' => 'required|numeric|min:0|max:100',
                 'unit' => 'required|in:kg,g'
             ]);
 
@@ -899,8 +1044,9 @@ class TreeController extends Controller
                 'tanggal_pestisida' => 'required|date',
                 'nama_pestisida' => 'required|string',
                 'jenis_pestisida' => 'required|in:Insektisida,Fungisida,Herbisida,Bakterisida',
+                'bentuk_pestisida' => 'nullable|string',
                 'dosis' => 'required|numeric',
-                'unit' => 'required|in:ml,l,g,kg'
+                'unit' => 'required|in:ml/tanaman,l/tanaman,g/tanaman'
             ]);
 
             $pesticide = TreePesticide::create([
@@ -908,6 +1054,7 @@ class TreeController extends Controller
                 'tanggal_pestisida' => $request->tanggal_pestisida,
                 'nama_pestisida' => $request->nama_pestisida,
                 'jenis_pestisida' => $request->jenis_pestisida,
+                'bentuk_pestisida' => $request->bentuk_pestisida,
                 'dosis' => $request->dosis,
                 'unit' => $request->unit
             ]);

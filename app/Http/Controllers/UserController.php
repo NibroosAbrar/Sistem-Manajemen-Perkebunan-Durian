@@ -14,9 +14,25 @@ class UserController extends Controller
     /**
      * Menampilkan daftar pengguna dan role.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $users = User::orderBy('id', 'asc')->get(); // Tetap urut berdasarkan ID
+        $query = User::query();
+
+        // Filter berdasarkan role
+        if ($request->filled('role_id')) {
+            $query->where('role_id', $request->role_id);
+        }
+
+        // Pencarian berdasarkan nama atau username (case insensitive)
+        if ($request->filled('search')) {
+            $query->where(function($q) use ($request) {
+                $searchTerm = strtolower($request->search);
+                $q->whereRaw('LOWER(name) LIKE ?', ['%' . $searchTerm . '%'])
+                  ->orWhereRaw('LOWER(username) LIKE ?', ['%' . $searchTerm . '%']);
+            });
+        }
+
+        $users = $query->orderBy('id', 'asc')->get();
         $roles = Role::all();
         return view('pages.akun', compact('users', 'roles'));
     }
@@ -85,6 +101,16 @@ class UserController extends Controller
     public function profile()
     {
         $user = Auth::user()->load('role'); // Load relasi role
+        
+        // Simpan URL sebelumnya ke session, kecuali jika URL sebelumnya adalah halaman update profil
+        $previous = url()->previous();
+        $updateProfileUrl = route('akun.profil.update');
+        
+        // Jika URL sebelumnya bukan URL update profil dan bukan URL profil itu sendiri
+        if (!str_contains($previous, 'akun/profil')) {
+            session(['url.intended.after.profile' => $previous]);
+        }
+        
         return view('pages.profil', compact('user'));
     }
 
@@ -92,21 +118,53 @@ class UserController extends Controller
     {
         $user = Auth::user();
 
-        $request->validate([
-            'name' => 'required|string|max:255',
-            'password' => 'nullable|string|min:6|confirmed',
-        ]);
+        try {
+            $request->validate([
+                'name' => 'nullable|string|max:255',
+                'username' => 'nullable|string|max:255|unique:users,username,' . $user->id,
+                'email' => 'nullable|string|email|max:255|unique:users,email,' . $user->id,
+                'password' => 'nullable|string|min:6|confirmed',
+            ]);
 
-        // Update nama
-        $user->name = $request->name;
+            // Validasi tambahan: setidaknya name atau username harus diisi
+            if (empty($request->name) && empty($request->username)) {
+                return redirect()->route('akun.profil')
+                    ->withInput()
+                    ->withErrors(['name' => 'Setidaknya nama lengkap atau username harus diisi.']);
+            }
 
-        // Jika password diisi, update password
-        if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
+            // Update nama dan username jika diisi
+            if ($request->filled('name')) {
+                $user->name = $request->name;
+            }
+
+            if ($request->filled('username')) {
+                $user->username = $request->username;
+            }
+            
+            // Update email jika diisi
+            if ($request->filled('email') && $request->email !== $user->email) {
+                $user->email = $request->email;
+            }
+
+            // Jika password diisi, update password
+            if ($request->filled('password')) {
+                $user->password = Hash::make($request->password);
+            }
+
+            $user->save();
+
+            // Simpan URL kembali dalam flash session untuk digunakan setelah redirect
+            return redirect()->route('akun.profil')->with('success', 'Profil berhasil diperbarui.');
+        } catch (\Exception $e) {
+            \Log::error('Gagal memperbarui profil: ' . $e->getMessage(), [
+                'user_id' => $user->id,
+                'request' => $request->except('password', 'password_confirmation')
+            ]);
+
+            return redirect()->route('akun.profil')
+                ->withInput()
+                ->with('error', 'Terjadi kesalahan saat menyimpan perubahan: ' . $e->getMessage());
         }
-
-        $user->save();
-
-        return redirect()->route('akun.profil')->with('success', 'Profil berhasil diperbarui.');
     }
 }

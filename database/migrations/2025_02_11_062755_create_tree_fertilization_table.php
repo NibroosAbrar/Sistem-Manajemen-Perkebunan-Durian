@@ -14,13 +14,14 @@ return new class extends Migration
     {
         Schema::create('tree_fertilization', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tree_id')->constrained('trees')->onDelete('cascade');
+            $table->string('tree_id', 20);
+            $table->foreign('tree_id')->references('id')->on('trees')->onDelete('cascade');
             $table->date('tanggal_pemupukan');
             $table->string('nama_pupuk');
             $table->enum('jenis_pupuk', ['Organik', 'Anorganik']);
             $table->string('bentuk_pupuk');
             $table->decimal('dosis_pupuk', 8, 2);
-            $table->enum('unit', ['kg', 'g', 'ml', 'l']);
+            $table->enum('unit', ['ml/pohon', 'g/pohon']);
             $table->timestamps();
         });
     }

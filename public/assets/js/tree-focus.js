@@ -65,6 +65,7 @@ function focusOnTree(treeId) {
                             <p><b>Varietas:</b> ${tree.data.varietas}</p>
                             <p><b>Tahun Tanam:</b> ${tree.data.tahun_tanam}</p>
                             <p><b>Status:</b> ${tree.data.health_status}</p>
+                            <p><b>Fase Pertumbuhan:</b> ${tree.data.fase}</p>
                             <p><b>Koordinat:</b></p>
                             <p>Latitude: ${latitude}</p>
                             <p>Longitude: ${longitude}</p>

@@ -10,7 +10,7 @@ return new class extends Migration {
         Schema::create('stocks', function (Blueprint $table) {
             $table->id();
             $table->string('name'); // Nama barang
-            $table->enum('category', ['bibit_pohon', 'pupuk', 'pestisida_fungisida', 'alat_perlengkapan']); // Kategori stok
+            $table->enum('category', ['bibit_pohon', 'pupuk', 'pestisida_fungisida', 'alat_perlengkapan', 'zat_pengatur_tumbuh']); // Kategori stok
             $table->integer('quantity'); // Jumlah stok
             $table->string('unit')->nullable(); // Satuan (Kg, Liter, dll.)
             $table->date('date_added'); // Tanggal masuk stok

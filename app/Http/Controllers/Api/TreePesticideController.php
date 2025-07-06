@@ -31,8 +31,10 @@ class TreePesticideController extends Controller
                 'tree_id' => 'required|exists:trees,id',
                 'nama_pestisida' => 'required|string',
                 'jenis_pestisida' => 'required|string',
+                'bentuk_pestisida' => 'nullable|string',
                 'dosis' => 'required|numeric',
-                'tanggal_penyemprotan' => 'required|date'
+                'tanggal_pestisida' => 'required|date',
+                'unit' => 'required|in:ml/tanaman,l/tanaman,g/tanaman'
             ]);
 
             $pesticide = TreePesticide::create($validated);
@@ -75,8 +77,10 @@ class TreePesticideController extends Controller
                 'tree_id' => 'exists:trees,id',
                 'nama_pestisida' => 'string',
                 'jenis_pestisida' => 'string',
+                'bentuk_pestisida' => 'nullable|string',
                 'dosis' => 'numeric',
-                'tanggal_penyemprotan' => 'date'
+                'tanggal_pestisida' => 'date',
+                'unit' => 'in:ml/tanaman,l/tanaman,g/tanaman'
             ]);
 
             $pesticide->update($validated);

@@ -14,12 +14,13 @@ return new class extends Migration
     {
         Schema::create('tree_pesticide', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tree_id')->constrained('trees')->onDelete('cascade');
+            $table->string('tree_id', 20);
+            $table->foreign('tree_id')->references('id')->on('trees')->onDelete('cascade');
             $table->date('tanggal_pestisida');
             $table->string('nama_pestisida')->nullable();
             $table->string('jenis_pestisida')->nullable();
             $table->decimal('dosis', 8, 2)->nullable();
-            $table->enum('unit', ['ml', 'l', 'g', 'kg']);
+            $table->enum('unit', ['ml/pohon', 'g/pohon']);
             $table->timestamps();
         });
     }

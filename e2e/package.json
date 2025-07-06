@@ -1,0 +1,24 @@
+{
+  "name": "laravel11-e2e-tests",
+  "version": "1.0.0",
+  "description": "E2E testing untuk aplikasi Laravel 11 WebGIS",
+  "main": "index.js",
+  "scripts": {
+    "test": "playwright test",
+    "test:chrome": "playwright test --project=chromium",
+    "test:firefox": "playwright test --project=firefox",
+    "test:safari": "playwright test --project=webkit",
+    "test:mobile": "playwright test --project=\"Mobile Chrome\" --project=\"Mobile Safari\"",
+    "test:tablet": "playwright test --project=iPad --project=\"iPad Pro\"",
+    "test:ui": "playwright test --ui",
+    "report": "playwright show-report"
+  },
+  "keywords": [
+    "e2e",
+    "testing",
+    "playwright",
+    "laravel"
+  ],
+  "author": "",
+  "license": "ISC"
+}

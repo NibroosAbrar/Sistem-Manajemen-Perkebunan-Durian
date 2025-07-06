@@ -7,6 +7,9 @@ use App\Models\Tree;
 use App\Models\TreeFertilization;
 use App\Models\TreePesticide;
 use App\Models\Harvest;
+use App\Models\TreeGrowth;
+use App\Models\TreeHealthProfile;
+use App\Models\TreeZpt;
 
 class TreeDashboardController extends Controller
 {
@@ -39,6 +42,21 @@ class TreeDashboardController extends Controller
             ->orderBy('tanggal_panen', 'desc')
             ->get();
 
+        // Get growth history
+        $growths = TreeGrowth::where('tree_id', $treeId)
+            ->orderBy('tanggal', 'desc')
+            ->get();
+
+        // Get health profile history
+        $healthProfiles = TreeHealthProfile::where('tree_id', $treeId)
+            ->orderBy('tanggal_pemeriksaan', 'desc')
+            ->get();
+
+        // Get ZPT history
+        $zptRecords = TreeZpt::where('tree_id', $treeId)
+            ->orderBy('tanggal_aplikasi', 'desc')
+            ->get();
+
         // Calculate total harvest weight
         $totalHarvest = $harvests->sum('total_weight');
 
@@ -47,6 +65,9 @@ class TreeDashboardController extends Controller
             'fertilizations',
             'pesticides',
             'harvests',
+            'growths',
+            'healthProfiles',
+            'zptRecords',
             'totalHarvest'
         ));
     }
@@ -101,6 +122,24 @@ class TreeDashboardController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal menghapus data panen: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function destroyGrowth($id)
+    {
+        try {
+            $growth = TreeGrowth::findOrFail($id);
+            $growth->delete();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Data pertumbuhan berhasil dihapus'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menghapus data pertumbuhan: ' . $e->getMessage()
             ], 500);
         }
     }

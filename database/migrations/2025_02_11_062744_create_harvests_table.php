@@ -13,12 +13,13 @@ return new class extends Migration
     {
         Schema::create('harvests', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('tree_id')->constrained('trees')->onDelete('cascade');
+            $table->string('tree_id', 20);
+            $table->foreign('tree_id')->references('id')->on('trees')->onDelete('cascade');
             $table->date('tanggal_panen');
             $table->float('total_weight')->nullable();
             $table->integer('fruit_count')->nullable();
             $table->float('average_weight_per_fruit')->nullable();
-            $table->string('fruit_condition')->nullable();
+            $table->decimal('fruit_condition', 5, 2)->nullable()->comment('Persentase kondisi buah (0-100%)');
             $table->enum('unit', ['kg', 'g']);
             $table->timestamps();
         });

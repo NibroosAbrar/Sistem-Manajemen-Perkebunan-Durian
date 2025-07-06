@@ -2,255 +2,607 @@
 @extends('layouts.app')
 
 @section('title', 'Stok - Symadu')
+@section('header-title', 'Manajemen Stok')
 
 @section('content')
 
-<div id="loading-screen">i
+<div id="loading-screen">
 </div>
 
-<div class="w-full flex flex-col h-screen overflow-y-auto">
-    <!-- Header -->
-    <header class="bg-header text-black flex items-center justify-center py-4 px-6 relative">
-        <!-- Toggle Dropdown -->
-        <button @click="isDropdownOpen = !isDropdownOpen" class="absolute left-6 text-3xl focus:outline-none">
-            <i x-show="!isDropdownOpen" class="fas fa-bars"></i>
-            <i x-show="isDropdownOpen" class="fas fa-times"></i>
-        </button>
-        <h1 class="text-xl font-semibold">Manajemen Stok</h1>
-        <div x-data="{ isOpen: false }" class="absolute right-6 flex justify-end">
-            <button @click="isOpen = !isOpen" class="relative z-10 w-12 h-12 rounded-full overflow-hidden border-4 border-gray-400 hover:border-gray-300 focus:border-gray-300 focus:outline-none">
-                <img src="static/profile.png">
+<div class="w-full flex flex-col h-screen overflow-y-auto" x-data="{
+    showAddModal: false,
+    showOutModal: false,
+    showExportModal: false,
+    editStockId: null,
+    showEditForm: false,
+    showDeleteModal: false,
+    deleteStockId: null,
+    activeTab: 'bibit_pohon',
+    activeSubTab: 'total',
+    searchQuery: ''
+}">
+    <!-- Header dengan Tab, Search Bar dan Tombol Tambah dalam satu baris -->
+    <div class="flex flex-col md:flex-row justify-between items-center px-6 mt-6 mb-6 gap-4">
+        <!-- Navigasi Tab dengan desain yang lebih profesional -->
+        <div class="flex bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
+            <button @click="activeTab = 'bibit_pohon'"
+                :class="{ 'bg-emerald-700 text-white': activeTab === 'bibit_pohon', 'hover:bg-gray-100': activeTab !== 'bibit_pohon' }"
+                class="py-2 px-4 text-sm font-medium transition-colors duration-200 focus:outline-none">
+                Bibit & Pohon
             </button>
-            <button x-show="isOpen" @click="isOpen = false" class="h-full w-full fixed inset-0 cursor-default"></button>
-            <div x-show="isOpen" class="account-dropdown py-2 mt-16">
-                <a href="{{ route('akun.profil') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Akun</a>
-                <a href="#" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Support</a>
-                <div x-data="{ showModal: false }">
-                    <a href="#" @click.prevent="showModal = true" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Keluar</a>
+            <button @click="activeTab = 'pupuk'"
+                :class="{ 'bg-emerald-700 text-white': activeTab === 'pupuk', 'hover:bg-gray-100': activeTab !== 'pupuk' }"
+                class="py-2 px-4 text-sm font-medium transition-colors duration-200 focus:outline-none">
+                Pupuk
+            </button>
+            <button @click="activeTab = 'pestisida_fungisida'"
+                :class="{ 'bg-emerald-700 text-white': activeTab === 'pestisida_fungisida', 'hover:bg-gray-100': activeTab !== 'pestisida_fungisida' }"
+                class="py-2 px-4 text-sm font-medium transition-colors duration-200 focus:outline-none">
+                Pestisida
+            </button>
+            <button @click="activeTab = 'alat_perlengkapan'"
+                :class="{ 'bg-emerald-700 text-white': activeTab === 'alat_perlengkapan', 'hover:bg-gray-100': activeTab !== 'alat_perlengkapan' }"
+                class="py-2 px-4 text-sm font-medium transition-colors duration-200 focus:outline-none">
+                Alat & Perlengkapan
+            </button>
+            <button @click="activeTab = 'zat_pengatur_tumbuh'"
+                :class="{ 'bg-emerald-700 text-white': activeTab === 'zat_pengatur_tumbuh', 'hover:bg-gray-100': activeTab !== 'zat_pengatur_tumbuh' }"
+                class="py-2 px-4 text-sm font-medium transition-colors duration-200 focus:outline-none">
+                Zat Pengatur Tumbuh
+            </button>
+        </div>
 
-                    <!-- Modal -->
-                    <div x-show="showModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-                        <div class="bg-white p-6 rounded-lg shadow-lg">
-                            <h2 class="text-xl font-semibold mb-4">Konfirmasi Keluar</h2>
-                            <p class="mb-4">Apakah Anda yakin ingin keluar?</p>
-                            <div class="flex justify-end">
-                                <button @click="showModal = false" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold py-2 px-4 rounded mr-2">Batal</button>
-                                <form id="logout-form" action="{{ route('logout') }}" method="POST" class="hidden">
-                                    @csrf
-                                </form>
+        <!-- Tombol Tambah dan Keluar Stok -->
+        <div class="flex gap-2">
+            <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm flex items-center transition-all duration-200 transform hover:scale-105" @click="showAddModal = true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z" clip-rule="evenodd" />
+                </svg>
+                Stok Masuk
+            </button>
+            <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm flex items-center transition-all duration-200 transform hover:scale-105" @click="showOutModal = true">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clip-rule="evenodd" />
+                </svg>
+                Stok Keluar
+            </button>
+            <button class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2 px-4 rounded-lg shadow-sm flex items-center transition-all duration-200 transform hover:scale-105" @click="showExportModal = true">
+                <i class="fas fa-file-excel mr-2"></i>
+                Ekspor Data
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 ml-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+        </div>
+    </div>
 
-                                <button @click="document.getElementById('logout-form').submit()" class="bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded">Keluar</button>
-
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- Search Bar -->
+    <div class="px-6 mb-4">
+        <div class="relative">
+            <input
+                type="text"
+                x-model="searchQuery"
+                placeholder="Cari stok berdasarkan nama..."
+                class="w-full p-3 pl-10 pr-4 rounded-lg border border-gray-300 shadow-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            >
+            <div class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
             </div>
         </div>
-    </header>
-
-    <!-- Dropdown Menu -->
-    <div x-show="isDropdownOpen" class="sidebar-dropdown py-2 mt-16 absolute left-6">
-        <h1 class="sidebar-header text-2xl font-bold text-center mb-4" style="color: #4aa87a;">Symadu</h1>
-        <a href="{{ route('webgis') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Beranda</a>
-        {{-- <a href="dashboard.html" @click="isDropdownOpen = false" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Dashboard Kebun</a> --}}
-        <a href="{{ route('dashboard') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Dashboard Kebun</a>
-        <a href="{{ route('pengelolaan') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Kegiatan Pengelolaan Kebun</a>
-
-        @if(Auth::user()->role_id == 1) {{-- Superadmin --}}
-            <a href="{{ route('stok') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Manajemen Stok Kebun</a>
-            <a href="{{ route('akun') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Manajemen Pengguna</a>
-        @elseif(Auth::user()->role_id == 2) {{-- Manajer --}}
-            <a href="{{ route('stok') }}" class="block px-4 py-2 text-gray-800 account-link hover:bg-blue-500 hover:text-white">Manajemen Stok Kebun</a>
-        @elseif(Auth::user()->role_id == 3) {{-- Operasional --}}
-            {{-- Tidak menampilkan Manajemen Stok dan Manajemen Pengguna --}}
-        @elseif(Auth::user()->role_id == 4) {{-- Guest --}}
-            {{-- Sama seperti operasional, hanya bisa melihat (tambah edit dibatasi di controller) --}}
-        @endif
     </div>
 
     <!-- Konten utama -->
-    <div class="container mx-auto p-6" x-data="{
-        showAddForm: false,
-        editStockId: null,
-        showEditForm: false,
-        showDeleteModal: false,
-        deleteStockId: null,
-        showEditConfirmModal: false,
+    <div class="px-6">
+        <!-- Tab Content -->
+        @foreach ($stocks as $category => $items)
+        <div x-show="activeTab === '{{ $category }}'"
+            x-transition:enter="transition ease-out duration-300"
+            x-transition:enter-start="opacity-0 transform translate-y-4"
+            x-transition:enter-end="opacity-100 transform translate-y-0"
+            class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">{{ ucwords(str_replace('_', ' ', $category)) }}</h2>
 
-        // Fungsi untuk mengatur ID yang akan dihapus dan menampilkan modal
-        setDeleteStockId(id) {
-            this.deleteStockId = id;
-            this.showDeleteModal = true;
-        },
-
-        // Fungsi untuk mengonfirmasi penghapusan
-        confirmDeleteStock() {
-            if (this.deleteStockId) {
-                document.getElementById(`delete-form-${this.deleteStockId}`).submit();
-            }
-        }
-    }">
-        <div class="flex justify-between items-center mb-4">
-            <h1 class="text-2xl font-bold">Daftar Stok</h1>
-            <button @click="showAddForm = !showAddForm" class="bg-green-500 text-white p-2 rounded">
-                Tambah Stok
-            </button>
-        </div>
-
-        <!-- Form Tambah Stok (Tersembunyi Secara Default) -->
-        <div x-show="showAddForm" x-transition x-cloak class="mb-6 p-4 bg-white shadow-md rounded w-full lg:w-3/4 mx-auto">
-            <h2 class="text-xl font-bold mb-4">Tambah Stok</h2>
-            <form action="{{ route('stok.store') }}" method="POST">
-                @csrf
-                <input type="text" name="name" placeholder="Nama Barang" required class="border p-2 rounded w-full mb-2">
-                <select name="category" class="border p-2 rounded w-full mb-2">
-                    <option value="bibit_pohon">Bibit & Pohon</option>
-                    <option value="pupuk">Pupuk</option>
-                    <option value="pestisida_fungisida">Pestisida & Fungisida</option>
-                    <option value="alat_perlengkapan">Alat & Perlengkapan</option>
-                </select>
-                <input type="number" name="quantity" placeholder="Jumlah" required class="border p-2 rounded w-full mb-2">
-                <input type="text" name="unit" placeholder="Satuan" class="border p-2 rounded w-full mb-2">
-                <input type="date" name="date_added" required class="border p-2 rounded w-full mb-2">
-                <div class="flex justify-between">
-                    <button type="button" @click="showAddForm = false" class="bg-gray-500 text-white p-2 rounded">
-                        Batal
+                <!-- Sub Tabs untuk Total/Masuk/Keluar -->
+                <div class="flex mb-4 border-b border-gray-200">
+                    <button @click="activeSubTab = 'total'"
+                        :class="{ 'border-b-2 border-emerald-600 text-emerald-600': activeSubTab === 'total', 'text-gray-500 hover:text-emerald-600': activeSubTab !== 'total' }"
+                        class="py-2 px-4 font-medium focus:outline-none">
+                        Total
                     </button>
-                    <button type="submit" class="bg-blue-500 text-white p-2 rounded">
-                        Simpan Stok
+                    <button @click="activeSubTab = 'masuk'"
+                        :class="{ 'border-b-2 border-emerald-600 text-emerald-600': activeSubTab === 'masuk', 'text-gray-500 hover:text-emerald-600': activeSubTab !== 'masuk' }"
+                        class="py-2 px-4 font-medium focus:outline-none">
+                        Masuk
+                    </button>
+                    <button @click="activeSubTab = 'keluar'"
+                        :class="{ 'border-b-2 border-emerald-600 text-emerald-600': activeSubTab === 'keluar', 'text-gray-500 hover:text-emerald-600': activeSubTab !== 'keluar' }"
+                        class="py-2 px-4 font-medium focus:outline-none">
+                        Keluar
                     </button>
                 </div>
-            </form>
-        </div>
 
-        <!-- Daftar Stok -->
-        <div class="w-full overflow-x-auto border-t flex flex-col">
-            <main class="w-full flex-grow p-6">
-                @foreach ($stocks as $category => $items)
-                    <h2 class="text-xl font-bold mt-6">{{ ucfirst(str_replace('_', ' ', $category)) }}</h2>
-                    <div class="overflow-x-auto">
-                        <table class="w-full min-w-full border-collapse border border-gray-300 bg-white shadow-md table-fixed">
+                <!-- Tab Total -->
+                <div x-show="activeSubTab === 'total'" class="overflow-x-auto rounded-lg shadow">
+                    @php
+                        $satuanPerItem = [];
 
-                            <thead>
-                                <tr class="bg-gray-200">
-                                    <th class="p-3 text-left border border-gray-300">Nama</th>
-                                    <th class="p-3 text-left border border-gray-300">Jumlah</th>
-                                    <th class="p-3 text-left border border-gray-300">Satuan</th>
-                                    <th class="p-3 text-left border border-gray-300">Tanggal Masuk</th>
-                                    <th class="p-3 text-center border border-gray-300">Aksi</th>
+                        foreach ($items as $stock) {
+                            $quantity = $stock->quantity;
+                            if (isset($stock->type) && $stock->type === 'out') {
+                                $quantity = -$quantity;
+                            }
+
+                            // Kelompokkan berdasarkan nama barang dan satuan (case-insensitive)
+                            $normalizedName = strtolower($stock->name);
+                            $key = $normalizedName . '|' . $stock->unit;
+
+                            if (!isset($satuanPerItem[$key])) {
+                                // Gunakan name asli untuk tampilan, normalizedName untuk pengelompokan
+                                $satuanPerItem[$key] = ['name' => $stock->name, 'unit' => $stock->unit, 'total' => 0];
+                            }
+                            $satuanPerItem[$key]['total'] += $quantity;
+                        }
+                    @endphp
+
+                    <table class="w-full border-collapse bg-white">
+                        <thead>
+                            <tr class="bg-emerald-800 text-white">
+                                <th class="p-4 text-center font-semibold text-base capitalize">Nama</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Jumlah</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Satuan</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @if(count($satuanPerItem) > 0)
+                                @foreach($satuanPerItem as $item)
+                                <tr class="hover:bg-gray-50 transition-colors duration-150" x-show="!searchQuery || '{{ strtolower($item['name']) }}'.includes(searchQuery.toLowerCase())">
+                                    <td class="p-4 text-center text-gray-700 text-base break-words whitespace-normal">{{ $item['name'] }}</td>
+                                    <td class="p-4 text-center text-gray-700 text-base">
+                                        <span class="{{ $item['total'] < 0 ? 'text-red-600 font-bold' : 'text-emerald-600 font-bold' }}">
+                                            {{ $item['total'] }}
+                                        </span>
+                                    </td>
+                                    <td class="p-4 text-center text-gray-700 text-base">{{ $item['unit'] }}</td>
+                                    <td class="p-4 text-center">
+                                        @if($item['total'] <= 0)
+                                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs font-medium">Habis/Kurang</span>
+                                        @elseif($item['total'] < 5)
+                                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-medium">Stok Rendah</span>
+                                        @else
+                                            <span class="px-2 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-medium">Stok Cukup</span>
+                                        @endif
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($items as $stock)
-                                    <tr class="border-t hover:bg-gray-100" id="stok-row-{{ $stock->id }}">
-                                        <td class="p-3 border border-gray-300 break-words whitespace-normal">{{ $stock->name }}</td>
-                                        <td class="p-3 border border-gray-300">{{ $stock->quantity }}</td>
-                                        <td class="p-3 border border-gray-300">{{ $stock->unit }}</td>
-                                        <td class="p-3 border border-gray-300">{{ $stock->date_added }}</td>
-                                        <td class="p-3 text-center border border-gray-300">
-                                            <!-- Tombol Edit -->
-                                            <button @click="editStockId = {{ $stock->id }}; showEditForm = !showEditForm" class="bg-yellow-500 text-white p-2 rounded">
-                                                Edit
-                                            </button>
-
-                                            <!-- Tombol Hapus -->
-                                            <button @click="deleteStockId = {{ $stock->id }}; showDeleteModal = true" class="bg-red-500 text-white p-2 rounded">
-                                                Hapus
-                                            </button>
-                                        </td>
-                                    </tr>
-
-                                    <!-- Form Edit Stok -->
-                                    <tr x-show="editStockId == {{ $stock->id }} && showEditForm" x-transition x-cloak class="mb-6 p-4 bg-white shadow-md rounded w-full lg:w-3/4 mx-auto">
-                                        <td colspan="5" class="p-3 bg-gray-100">
-                                            <form action="{{ route('stok.update', $stock->id) }}" method="POST">
-                                                @csrf
-                                                @method('PUT')
-                                                <div class="flex flex-col space-y-2">
-                                                    <input type="text" name="name" value="{{ $stock->name }}" required class="border p-2 rounded w-full">
-                                                    <input type="number" name="quantity" value="{{ $stock->quantity }}" required class="border p-2 rounded w-full">
-                                                    <input type="text" name="unit" value="{{ $stock->unit }}" class="border p-2 rounded w-full">
-                                                    <input type="date" name="date_added" value="{{ $stock->date_added }}" required class="border p-2 rounded w-full">
-                                                    <div class="flex justify-between">
-                                                        <button type="button" @click="editStockId = null; showEditForm = false" class="bg-gray-500 text-white p-2 rounded">
-                                                            Batal
-                                                        </button>
-                                                        <button type="button" @click="showEditConfirmModal = true" class="bg-blue-500 text-white p-2 rounded">
-                                                            Simpan Perubahan
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Modal Konfirmasi Edit -->
-                                                <div x-show="showEditConfirmModal" class="fixed inset-0 flex items-center justify-center z-50">
-                                                    <div class="modal-overlay absolute inset-0 bg-black opacity-50"></div>
-
-                                                    <div class="bg-white w-96 rounded-lg shadow-lg z-50 overflow-hidden">
-                                                        <div class="p-6">
-                                                            <h2 class="text-xl font-bold mb-4">Konfirmasi Perubahan</h2>
-                                                            <p class="mb-6">Apakah Anda yakin ingin menyimpan perubahan ini?</p>
-
-                                                            <div class="flex justify-end space-x-2">
-                                                                <button type="button" @click="showEditConfirmModal = false; editStockId = null; showEditForm = false"
-                                                                    class="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-md font-medium">
-                                                                    Batal
-                                                                </button>
-                                                                <button type="submit"
-                                                                    class="px-6 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-md font-medium">
-                                                                    Simpan
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </form>
-                                            <form id="delete-form-{{ $stock->id }}" action="{{ route('stok.destroy', $stock->id) }}" method="POST" class="hidden">
-                                                @csrf
-                                                @method('DELETE')
-                                            </form>
-                                        </td>
-                                    </tr>
                                 @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                @endforeach
-            </main>
-        </div>
+                            @else
+                            <tr>
+                                <td colspan="4" class="p-4 text-center text-gray-500 text-base">Tidak ada data yang tersedia</td>
+                            </tr>
+                            @endif
+                        </tbody>
+                    </table>
+                </div>
 
-        <!-- Modal Konfirmasi Hapus -->
-        <div x-show="showDeleteModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50">
-            <div class="bg-white p-6 rounded-lg shadow-lg">
-                <h2 class="text-xl font-semibold mb-4">Konfirmasi Hapus</h2>
-                <p class="mb-4">Apakah Anda yakin ingin menghapus stok ini?</p>
-                <div class="flex justify-end">
-                    <button @click="showDeleteModal = false" class="bg-gray-500 text-white p-2 rounded mr-2">
+                <!-- Tab Stok Masuk -->
+                <div x-show="activeSubTab === 'masuk'" class="overflow-x-auto rounded-lg shadow">
+                    <table class="w-full border-collapse bg-white" id="stok-masuk">
+                        <thead>
+                            <tr class="bg-emerald-800 text-white">
+                                <th class="p-4 text-center font-semibold text-base capitalize">Nama</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Jumlah</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Satuan</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Tanggal</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize w-48">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @php
+                                $inItems = $items->filter(function($stock) {
+                                    return !isset($stock->type) || $stock->type === 'in';
+                                })->sortByDesc('date_added');
+                            @endphp
+
+                            @foreach ($inItems as $stock)
+                            <tr class="hover:bg-gray-50 transition-colors duration-150" id="stok-row-{{ $stock->id }}" x-show="!searchQuery || '{{ strtolower($stock->name) }}'.includes(searchQuery.toLowerCase())">
+                                <td class="p-4 text-center text-gray-700 text-base break-words whitespace-normal">{{ $stock->name }}</td>
+                                <td class="p-4 text-center text-gray-700 text-base">{{ $stock->quantity }}</td>
+                                <td class="p-4 text-center text-gray-700 text-base">{{ $stock->unit }}</td>
+                                <td class="p-4 text-center text-gray-700 text-base">{{ $stock->date_added }}</td>
+                                <td class="p-4">
+                                    <div class="flex space-x-2 justify-center">
+                                        <button @click="editStockId = {{ $stock->id }}; showEditForm = true; console.log('Edit ID:', {{ $stock->id }})"
+                                            class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-all duration-200 transform hover:scale-105 flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <button @click="deleteStockId = {{ $stock->id }}; showDeleteModal = true"
+                                            class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-all duration-200 transform hover:scale-105 flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                            Hapus
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+
+                            @if(count($inItems) == 0)
+                            <tr>
+                                <td colspan="5" class="p-4 text-center text-gray-500 text-base">Tidak ada data stok masuk</td>
+                            </tr>
+                            @endif
+
+                            <tr x-show="searchQuery && !document.querySelectorAll('#stok-masuk tr[id^=stok-row]:not(.hidden)').length">
+                                <td colspan="5" class="p-4 text-center text-gray-500 text-base">Tidak ada hasil pencarian untuk "<span x-text="searchQuery"></span>"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Tab Stok Keluar -->
+                <div x-show="activeSubTab === 'keluar'" class="overflow-x-auto rounded-lg shadow">
+                    <table class="w-full border-collapse bg-white" id="stok-keluar">
+                        <thead>
+                            <tr class="bg-emerald-800 text-white">
+                                <th class="p-4 text-center font-semibold text-base capitalize">Nama</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Jumlah</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Satuan</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize">Tanggal</th>
+                                <th class="p-4 text-center font-semibold text-base capitalize w-48">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            @php
+                                $outItems = $items->filter(function($stock) {
+                                    return isset($stock->type) && $stock->type === 'out';
+                                })->sortByDesc('date_added');
+                            @endphp
+
+                            @foreach ($outItems as $stock)
+                            <tr class="hover:bg-gray-50 transition-colors duration-150" id="stok-row-{{ $stock->id }}" x-show="!searchQuery || '{{ strtolower($stock->name) }}'.includes(searchQuery.toLowerCase())">
+                                <td class="p-4 text-center text-gray-700 text-base break-words whitespace-normal">{{ $stock->name }}</td>
+                                <td class="p-4 text-center text-gray-700 text-base">{{ $stock->quantity }}</td>
+                                <td class="p-4 text-center text-gray-700 text-base">{{ $stock->unit }}</td>
+                                <td class="p-4 text-center text-gray-700 text-base">{{ $stock->date_added }}</td>
+                                <td class="p-4">
+                                    <div class="flex space-x-2 justify-center">
+                                        <button @click="editStockId = {{ $stock->id }}; showEditForm = true; console.log('Edit ID:', {{ $stock->id }})"
+                                            class="bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-all duration-200 transform hover:scale-105 flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                                            </svg>
+                                            Edit
+                                        </button>
+                                        <button @click="deleteStockId = {{ $stock->id }}; showDeleteModal = true"
+                                            class="bg-red-500 hover:bg-red-600 text-white font-medium py-2 px-4 rounded-md shadow-sm transition-all duration-200 transform hover:scale-105 flex items-center">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                                            </svg>
+                                            Hapus
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            @endforeach
+
+                            @if(count($outItems) == 0)
+                            <tr>
+                                <td colspan="5" class="p-4 text-center text-gray-500 text-base">Tidak ada data stok keluar</td>
+                            </tr>
+                            @endif
+
+                            <tr x-show="searchQuery && !document.querySelectorAll('#stok-keluar tr[id^=stok-row]:not(.hidden)').length">
+                                <td colspan="5" class="p-4 text-center text-gray-500 text-base">Tidak ada hasil pencarian untuk "<span x-text="searchQuery"></span>"</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        @endforeach
+    </div>
+
+    <!-- Modal Konfirmasi Hapus -->
+    <div x-show="showDeleteModal"
+         class="fixed inset-0 flex items-center justify-center z-[9999]"
+         x-cloak>
+        <div class="fixed inset-0 bg-black opacity-50" @click="showDeleteModal = false"></div>
+
+        <div class="relative bg-white w-96 rounded-lg shadow-lg z-[10000]">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4">Konfirmasi Hapus</h2>
+                <p class="mb-6">Apakah Anda yakin ingin menghapus stok ini?</p>
+
+                <div class="flex justify-end space-x-2">
+                    <button type="button" @click="showDeleteModal = false"
+                        class="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded-md font-medium">
                         Batal
                     </button>
-                    <button @click="confirmDeleteStock()" class="bg-red-500 text-white p-2 rounded">
+                    <button type="button" @click="
+                        const form = document.createElement('form');
+                        form.method = 'POST';
+                        form.action = '{{ url('/stok') }}/' + deleteStockId;
+                        form.style.display = 'none';
+
+                        const method = document.createElement('input');
+                        method.type = 'hidden';
+                        method.name = '_method';
+                        method.value = 'DELETE';
+
+                        const token = document.createElement('input');
+                        token.type = 'hidden';
+                        token.name = '_token';
+                        token.value = '{{ csrf_token() }}';
+
+                        form.appendChild(method);
+                        form.appendChild(token);
+                        document.body.appendChild(form);
+                        form.submit();
+                    "
+                        class="px-6 py-2 bg-red-500 hover:bg-red-600 text-white rounded-md font-medium">
                         Hapus
                     </button>
                 </div>
             </div>
         </div>
     </div>
+
+    <!-- Modal Form Tambah Stok -->
+    <div x-show="showAddModal"
+         class="fixed inset-0 flex items-center justify-center z-[9999]"
+         x-cloak>
+        <div class="fixed inset-0 bg-black opacity-50" @click="showAddModal = false"></div>
+
+        <div class="relative bg-white w-full max-w-2xl rounded-lg shadow-lg z-[10000] m-4">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Tambah Stok Masuk</h2>
+                <form action="{{ route('stok.store') }}" method="POST" class="space-y-4">
+                    @csrf
+                    <input type="hidden" name="type" value="in">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
+                            <input type="text" name="name" placeholder="Nama Barang" required
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                            <select name="category" class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                                <option value="bibit_pohon">Bibit & Pohon</option>
+                                <option value="pupuk">Pupuk</option>
+                                <option value="pestisida_fungisida">Pestisida</option>
+                                <option value="alat_perlengkapan">Alat & Perlengkapan</option>
+                                <option value="zat_pengatur_tumbuh">Zat Pengatur Tumbuh</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
+                            <input type="number" name="quantity" placeholder="Jumlah" required
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+                            <input type="text" name="unit" placeholder="Satuan"
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                            <input type="date" name="date_added" required
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-2">
+                        <button type="button" @click="showAddModal = false"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md shadow-sm transition-all duration-200">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md shadow-sm transition-all duration-200">
+                            Simpan Stok
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Export Excel -->
+    <div x-show="showExportModal"
+         class="fixed inset-0 flex items-center justify-center z-[9999]"
+         x-cloak>
+        <div class="fixed inset-0 bg-black opacity-50" @click="showExportModal = false"></div>
+
+        <div class="relative bg-white w-full max-w-md rounded-lg shadow-lg z-[10000] m-4">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Ekspor Data Stok</h2>
+                <form action="{{ route('stok.export-excel') }}" method="GET" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                        <select name="category" class="w-full border rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <option value="all">Semua Kategori</option>
+                            <option value="bibit_pohon">Bibit & Pohon</option>
+                            <option value="pupuk">Pupuk</option>
+                            <option value="pestisida_fungisida">Pestisida</option>
+                            <option value="alat_perlengkapan">Alat & Perlengkapan</option>
+                            <option value="zat_pengatur_tumbuh">Zat Pengatur Tumbuh</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jenis Stok</label>
+                        <select name="export_type" class="w-full border rounded-md p-2 focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+                            <option value="all">Semua</option>
+                            <option value="in">Stok Masuk</option>
+                            <option value="out">Stok Keluar</option>
+                        </select>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-4">
+                        <button type="button" @click="showExportModal = false"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md shadow-sm transition-all duration-200">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md shadow-sm transition-all duration-200 flex items-center">
+                            <i class="fas fa-file-excel mr-2"></i>
+                            Ekspor Excel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Tambah Stok Keluar -->
+    <div x-show="showOutModal"
+         class="fixed inset-0 flex items-center justify-center z-[9999]"
+         x-cloak>
+        <div class="fixed inset-0 bg-black opacity-50" @click="showOutModal = false"></div>
+
+        <div class="relative bg-white w-full max-w-2xl rounded-lg shadow-lg z-[10000] m-4">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Tambah Stok Keluar</h2>
+                <form action="{{ route('stok.store') }}" method="POST" class="space-y-4">
+                    @csrf
+                    <input type="hidden" name="type" value="out">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
+                            <input type="text" name="name" placeholder="Nama Barang" required
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                            <select name="category" class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                                <option value="bibit_pohon">Bibit & Pohon</option>
+                                <option value="pupuk">Pupuk</option>
+                                <option value="pestisida_fungisida">Pestisida</option>
+                                <option value="alat_perlengkapan">Alat & Perlengkapan</option>
+                                <option value="zat_pengatur_tumbuh">Zat Pengatur Tumbuh</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
+                            <input type="number" name="quantity" placeholder="Jumlah" required
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+                            <input type="text" name="unit" placeholder="Satuan"
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                            <input type="date" name="date_added" required
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-2">
+                        <button type="button" @click="showOutModal = false"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md shadow-sm transition-all duration-200">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md shadow-sm transition-all duration-200">
+                            Simpan Stok Keluar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Form Edit Stok -->
+    <div x-show="showEditForm && editStockId !== null"
+         class="fixed inset-0 flex items-center justify-center z-[9999]"
+         x-cloak>
+        <div class="fixed inset-0 bg-black opacity-50" @click="showEditForm = false; editStockId = null;"></div>
+
+        <div class="relative bg-white w-full max-w-2xl rounded-lg shadow-lg z-[10000] m-4">
+            <div class="p-6">
+                <h2 class="text-xl font-bold mb-4 text-gray-800">Edit Data Stok</h2>
+                <form x-data="{ }" :id="'edit-form-' + editStockId" :action="'{{ url('/stok') }}/' + editStockId" method="POST" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+                    <input type="hidden" name="id" :value="editStockId">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Nama Barang</label>
+                            <input type="text" name="name" :value="document.querySelector('#stok-row-' + editStockId + ' td:nth-child(1)').textContent.trim()" required
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+                            <select name="category" class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                                <option value="bibit_pohon" x-bind:selected="activeTab === 'bibit_pohon'">Bibit & Pohon</option>
+                                <option value="pupuk" x-bind:selected="activeTab === 'pupuk'">Pupuk</option>
+                                <option value="pestisida_fungisida" x-bind:selected="activeTab === 'pestisida_fungisida'">Pestisida</option>
+                                <option value="alat_perlengkapan" x-bind:selected="activeTab === 'alat_perlengkapan'">Alat & Perlengkapan</option>
+                                <option value="zat_pengatur_tumbuh" x-bind:selected="activeTab === 'zat_pengatur_tumbuh'">Zat Pengatur Tumbuh</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah</label>
+                            <input type="number" name="quantity" :value="document.querySelector('#stok-row-' + editStockId + ' td:nth-child(2)').textContent.trim()" required
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Satuan</label>
+                            <input type="text" name="unit" :value="document.querySelector('#stok-row-' + editStockId + ' td:nth-child(3)').textContent.trim()"
+                                class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tipe</label>
+                            <select name="type" class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                                <option value="in" x-bind:selected="activeSubTab === 'masuk'">Stok Masuk</option>
+                                <option value="out" x-bind:selected="activeSubTab === 'keluar'">Stok Keluar</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal</label>
+                        <input type="date" name="date_added" :value="document.querySelector('#stok-row-' + editStockId + ' td:nth-child(4)').textContent.trim()" required
+                            class="w-full border rounded-md p-2 focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+                    </div>
+                    <div class="flex justify-end space-x-2 pt-2">
+                        <button type="button" @click="showEditForm = false; editStockId = null;"
+                            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md shadow-sm transition-all duration-200">
+                            Batal
+                        </button>
+                        <button type="submit"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md shadow-sm transition-all duration-200">
+                            Simpan Perubahan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Whitespace di bawah halaman -->
+    <div class="py-16"></div>
 </div>
 @endsection
 
 @section('scripts')
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script src="{{ url('static/L.Control.Sidebar.js') }}"></script>
-    <script src="{{ url('static/L.Control.MousePosition.js') }}"></script>
-    <script src="https://cdn.jsdelivr.net/npm/leaflet-easybutton@2/src/easy-button.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.0/js/all.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js"></script>
-    <script src="https://unpkg.com/{{ '@' }}geoman-io/leaflet-geoman-free@latest/dist/leaflet-geoman.js"></script>
-
-
-    <script src="{{ url('static/leaflet.ajax.js') }}"></script>
-    <script src="{{ url('assets/js/scripts.js') }}"></script>
+@parent
+<script>
+    // Cek apakah ada pesan sukses dari session
+    document.addEventListener('DOMContentLoaded', function() {
+        // Script tambahan jika diperlukan
+    });
+</script>
 @endsection
 
