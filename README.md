@@ -74,12 +74,12 @@ php artisan key:generate
 
 5. Setup database di file .env
 ```env
-DB_CONNECTION=mysql
+DB_CONNECTION=pgsql
 DB_HOST=127.0.0.1
-DB_PORT=3306
+DB_PORT=5432
 DB_DATABASE=symadu_db
-DB_USERNAME=root
-DB_PASSWORD=
+DB_USERNAME=postgres
+DB_PASSWORD=your_password
 ```
 
 6. Jalankan migration dan seeder
