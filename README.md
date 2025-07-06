@@ -1,6 +1,6 @@
 # Symadu - Sistem Manajemen Perkebunan Durian
 <div align="center">
-  <img src="https://github.com/user-attachments/assets/f7166bbb-4160-4957-b831-f286e2d24267" width="800"/>
+  <img src="https://github.com/user-attachments/assets/f7166bbb-4160-4957-b831-f286e2d24267" width="900"/>
 </div>
 
 
