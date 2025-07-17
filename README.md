@@ -87,7 +87,12 @@ DB_PASSWORD=your_password
 php artisan migrate --seed
 ```
 
-7. Jalankan aplikasi
+7. Public Storage
+```bash
+php artisan storage:link
+```
+
+8. Jalankan aplikasi
 ```bash
 php artisan serve
 npm run dev
