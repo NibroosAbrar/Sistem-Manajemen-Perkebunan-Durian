@@ -87,7 +87,7 @@ DB_PASSWORD=your_password
 php artisan migrate --seed
 ```
 
-7. Public Storage
+7. Public storage
 ```bash
 php artisan storage:link
 ```
