@@ -114,10 +114,6 @@ npm run dev
    - Melihat informasi umum
    - Akses terbatas ke data publik
 
-## 📝 Lisensi
-
-© 2025 Muhammad Nibroos Abrar. All rights reserved.
-
 ## 🤝 Kontribusi
 
 Kontribusi dan saran untuk pengembangan Symadu sangat diterima. Silakan buat pull request atau laporkan issues jika menemukan bug atau memiliki ide untuk pengembangan.
@@ -125,8 +121,6 @@ Kontribusi dan saran untuk pengembangan Symadu sangat diterima. Silakan buat pul
 ## 📧 Kontak
 
 Untuk informasi lebih lanjut, silakan hubungi:
-- Email: nibroos@example.com
-- Website: https://symadu.example.com
-
+- Email: mnibroosabrar@gmail.com
 ---
-Dibuat dengan oleh Muhammad Nibroos Abrar
+© 2025 Muhammad Nibroos Abrar. All rights reserved.
