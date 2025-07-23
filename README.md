@@ -119,11 +119,10 @@ npm run dev
    - Melihat informasi umum
    - Akses terbatas ke data publik
 
-## 🤝 Kontribusi
 
 Kontribusi dan saran untuk pengembangan Symadu sangat diterima. Silakan buat pull request atau laporkan issues jika menemukan bug atau memiliki ide untuk pengembangan.
 
-## 📧 Kontak
+## Kontak
 
 Untuk informasi lebih lanjut, silakan hubungi:
 - Email: mnibroosabrar@gmail.com
